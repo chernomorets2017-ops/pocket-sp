@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SP-404 WEB</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+  :root {
+    --bg: #12141a;
+    --metal: linear-gradient(145deg, #3a3d45, #22252b);
+    --pad: linear-gradient(145deg, #4a4e58, #2a2d35);
+    --pad-active: linear-gradient(145deg, #ff6b35, #e04a1a);
+    --accent: #ff6b35;
+    --screen: #0a1a12;
+    --screen-text: #33ff99;
+    --knob: #1e2128;
+    --text: #e0e0e0;
+    --text-dim: #999;
+    --btn: linear-gradient(145deg, #3a3e48, #252830);
+    --btn-text: #ccc;
+    --shadow: 0 8px 20px rgba(0,0,0,0.6);
+  }
+  body.light {
+    --bg: #d4d0c8;
+    --metal: linear-gradient(145deg, #f0ece4, #c8c4bc);
+    --pad: linear-gradient(145deg, #e8e4dc, #b8b4ac);
+    --pad-active: linear-gradient(145deg, #ff8c4a, #e05a20);
+    --accent: #e05a20;
+    --screen: #1a2a22;
+    --screen-text: #66ffaa;
+    --knob: #c0bcb4;
+    --text: #222;
+    --text-dim: #666;
+    --btn: linear-gradient(145deg, #e0dcd4, #b0aca4);
+    --btn-text: #333;
+    --shadow: 0 8px 20px rgba(0,0,0,0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    background: var(--bg);
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 10px 8px 40px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    color: var(--text); transition: background 0.3s;
+  }
+  .device {
+    width: 100%; max-width: 400px; background: var(--metal); border-radius: 26px;
+    padding: 14px 12px 18px; box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 8px rgba(0,0,0,0.3);
+    position: relative; border: 1px solid rgba(0,0,0,0.3); overflow: hidden;
+  }
+  .stickers-layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; border-radius: 26px; }
+  .sticker {
+    position: absolute; font-size: 28px; cursor: grab; pointer-events: auto;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); transition: transform 0.15s; z-index: 25; line-height: 1;
+  }
+  .sticker:active { transform: scale(1.15); cursor: grabbing; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 2px; position: relative; z-index: 5; }
+  .logo { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; color: var(--text-dim); }
+  .logo span { color: var(--accent); }
+  .top-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 8px; border: none; background: var(--btn); color: var(--btn-text);
+    font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .pro-badge {
+    background: linear-gradient(145deg, #ffcc00, #e6a800); color: #222; font-size: 9px; font-weight: 700;
+    padding: 4px 8px; border-radius: 10px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .pro-badge.unlocked { background: linear-gradient(145deg, #33ff99, #1acc77); }
+  .screen {
+    background: var(--screen); border-radius: 12px; height: 68px; margin-bottom: 12px; padding: 8px 12px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.7); border: 2px solid #0d2818; position: relative; overflow: hidden;
+    font-family: 'Orbitron', monospace; z-index: 5;
+  }
+  .screen::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(51,255,153,0.06) 0%, transparent 50%); pointer-events: none; }
+  .screen-top { display: flex; justify-content: space-between; font-size: 10px; color: var(--screen-text); opacity: 0.85; margin-bottom: 4px; }
+  .screen-main { font-size: 18px; font-weight: 700; color: var(--screen-text); text-shadow: 0 0 8px rgba(51,255,153,0.45); letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .screen-sub { font-size: 9px; color: #1a9966; margin-top: 2px; }
+  .controls-row { display: flex; gap: 6px; margin-bottom: 11px; position: relative; z-index: 5; }
+  .knob-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .knob-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-dim); font-weight: 600; }
+  .knob {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--knob);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.45), inset 0 2px 3px rgba(255,255,255,0.12), inset 0 -3px 5px rgba(0,0,0,0.5);
+    position: relative; cursor: grab; touch-action: none;
+  }
+  .knob::after { content: ''; position: absolute; top: 5px; left: 50%; width: 3px; height: 13px; background: var(--accent); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 4px var(--accent); }
+  .knob-value { font-size: 9px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .fx-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 11px; position: relative; z-index: 5; }
+  .fx-btn {
+    background: var(--btn); border: none; border-radius: 9px; height: 34px; color: var(--btn-text); font-size: 9px; font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: all 0.12s;
+  }
+  .fx-btn::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45%; background: linear-gradient(180deg, rgba(255,255,255,0.12), transparent); border-radius: 9px 9px 0 0; pointer-events: none; }
+  .fx-btn.active { background: linear-gradient(145deg, #ff6b35, #c94a1a); color: #fff; box-shadow: 0 0 12px rgba(255,107,53,0.45); }
+  .fx-btn.locked::after { content: '🔒'; position: absolute; top: 1px; right: 2px; font-size: 8px; }
+  .pads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; position: relative; z-index: 5; }
+  .pad {
+    aspect-ratio: 1; border-radius: 11px; background: var(--pad); border: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.14), inset 0 -3px 6px rgba(0,0,0,0.4);
+    cursor: pointer; position: relative; transition: transform 0.07s, box-shadow 0.07s; overflow: hidden; touch-action: none;
+  }
+  .pad::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 42%; background: linear-gradient(180deg, rgba(255,255,255,0.18), transparent); border-radius: 11px 11px 0 0; pointer-events: none; }
+  .pad:active, .pad.playing { transform: scale(0.93); background: var(--pad-active); box-shadow: 0 0 16px rgba(255,107,53,0.5), inset 0 2px 4px rgba(255,255,255,0.2); }
+  .pad.latched { background: linear-gradient(145deg, #33cc77, #1a9955) !important; box-shadow: 0 0 14px rgba(51,204,119,0.5), inset 0 2px 4px rgba(255,255,255,0.2); }
+  .pad.selected { outline: 2px solid var(--screen-text); outline-offset: 1px; }
+  .pad-number { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); font-family: 'Orbitron', sans-serif; }
+  .pad.has-sample .pad-number { color: rgba(255,255,255,0.75); }
+  .pad-led { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: #222; box-shadow: inset 0 1px 2px #000; }
+  .pad.has-sample .pad-led { background: #33ff99; box-shadow: 0 0 5px #33ff99; }
+  .pad.latched .pad-led { background: #fff; box-shadow: 0 0 6px #fff; }
+  .bottom-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; position: relative; z-index: 5; }
+  .ctrl-btn {
+    height: 36px; border-radius: 9px; border: none; background: var(--btn); color: var(--btn-text); font-size: 10px; font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1); cursor: pointer; position: relative; transition: all 0.12s;
+  }
+  .ctrl-btn::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45%; background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent); border-radius: 9px 9px 0 0; pointer-events: none; }
+  .ctrl-btn:active, .ctrl-btn.active { background: linear-gradient(145deg, #ff6b35, #c94a1a); color: white; box-shadow: 0 0 10px rgba(255,107,53,0.4); }
+  .ctrl-btn.rec.active { background: linear-gradient(145deg, #ff3333, #cc1111); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 8px rgba(255,50,50,0.5); } 50% { box-shadow: 0 0 16px rgba(255,50,50,0.85); } }
+  .seq-section { margin-top: 4px; padding-top: 10px; border-top: 1px solid rgba(128,128,128,0.15); display: none; position: relative; z-index: 5; }
+  .seq-section.open { display: block; }
+  .seq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; font-size: 10px; color: var(--text-dim); font-weight: 600; }
+  .seq-header .seq-pad-select { font-size: 10px; color: var(--screen-text); }
+  .seq-steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; margin-bottom: 8px; }
+  .step { aspect-ratio: 1; border-radius: 3px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.1s; }
+  .step.on { background: var(--accent); box-shadow: 0 0 6px rgba(255,107,53,0.55); }
+  .step.current { outline: 2px solid #33ff99; }
+  .seq-controls { display: flex; gap: 6px; align-items: center; }
+  .seq-controls button { height: 28px; padding: 0 10px; border-radius: 7px; border: none; background: var(--btn); color: var(--btn-text); font-size: 10px; font-weight: 700; cursor: pointer; }
+  .seq-controls button.active { background: linear-gradient(145deg, #ff6b35, #c94a1a); color: #fff; }
+  .sliders-row { display: flex; gap: 12px; margin-top: 10px; padding: 0 2px; position: relative; z-index: 5; }
+  .slider-group { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .slider-group label { font-size: 9px; color: var(--text-dim); width: 28px; font-weight: 600; }
+  input[type="range"] { flex: 1; -webkit-appearance: none; height: 5px; background: rgba(0,0,0,0.35); border-radius: 3px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(145deg, #ff8c5a, #e04a1a); box-shadow: 0 2px 5px rgba(0,0,0,0.4); cursor: pointer; }
+  .stats-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 8px 10px;
+    background: rgba(0,0,0,0.25); border-radius: 10px; font-size: 11px; color: var(--text-dim); position: relative; z-index: 5;
+  }
+  .sticker-btn { background: linear-gradient(145deg, #7b5cff, #5a3fd4); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
+  .sticker-count { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 2px 7px; font-size: 10px; margin-left: 4px; }
+  .drop-overlay { position: absolute; inset: 0; background: rgba(10, 20, 15, 0.93); border-radius: 26px; display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 50; border: 3px dashed var(--accent); }
+  .drop-overlay.show { display: flex; }
+  .drop-overlay p { font-size: 15px; color: var(--screen-text); margin-top: 8px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: none; justify-content: center; align-items: center; z-index: 100; padding: 16px; }
+  .modal.show { display: flex; }
+  .modal-content { background: linear-gradient(145deg, #2c2f36, #1e2128); border-radius: 18px; padding: 22px; max-width: 320px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid #3a3d45; text-align: center; }
+  body.light .modal-content { background: linear-gradient(145deg, #f0ece4, #d8d4cc); border-color: #bbb; }
+  .modal h2 { font-size: 18px; margin-bottom: 6px; }
+  .modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.4; }
+  .price { font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+  .buy-btn { width: 100%; height: 44px; border: none; border-radius: 11px; background: linear-gradient(145deg, #ff6b35, #e04a1a); color: white; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(255,107,53,0.35); }
+  .close-modal { background: none; border: none; color: var(--text-dim); font-size: 12px; cursor: pointer; margin-top: 4px; }
+  .sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+  .sticker-item { aspect-ratio: 1; border-radius: 12px; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+  .sticker-item.owned { border-color: #33cc77; }
+  .sticker-item.locked { opacity: 0.4; filter: grayscale(0.8); }
+  .sticker-item .cost { font-size: 9px; margin-top: 4px; color: var(--text-dim); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: rgba(20,22,28,0.95); color: #33ff99; padding: 10px 18px; border-radius: 18px; font-size: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.45); transition: transform 0.28s ease; z-index: 200; pointer-events: none; max-width: 90%; text-align: center; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  #fileInput { display: none; }
+  @supports (padding: max(0px)) { body { padding-bottom: max(20px, env(safe-area-inset-bottom)); } }
+</style>
+</head>
+<body>
+<div class="device" id="device">
+  <div class="stickers-layer" id="stickersLayer"></div>
+  <div class="drop-overlay" id="dropOverlay"><div style="font-size:36px">📂</div><p>Брось семплы сюда</p></div>
+  <div class="top-bar">
+    <div class="logo">SP-<span>404</span> WEB</div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btnTheme">🌓</button>
+      <button class="icon-btn" id="btnSave">💾</button>
+      <div class="pro-badge" id="proBadge">FREE</div>
+    </div>
+  </div>
+  <div class="screen">
+    <div class="screen-top"><span id="screenBank">BANK A</span><span id="screenBpm">120 BPM</span></div>
+    <div class="screen-main" id="screenMain">READY</div>
+    <div class="screen-sub" id="screenSub">Load samples • Swipe pad ↓ to latch</div>
+  </div>
+  <div class="controls-row">
+    <div class="knob-group"><div class="knob-label">CUTOFF</div><div class="knob" id="knobCutoff" data-param="cutoff"></div><div class="knob-value" id="valCutoff">8000</div></div>
+    <div class="knob-group"><div class="knob-label">RESO</div><div class="knob" id="knobReso" data-param="reso"></div><div class="knob-value" id="valReso">1.0</div></div>
+    <div class="knob-group"><div class="knob-label">TIME</div><div class="knob" id="knobDelay" data-param="delay"></div><div class="knob-value" id="valDelay">0.25</div></div>
+    <div class="knob-group"><div class="knob-label">LO-FI</div><div class="knob" id="knobLofi" data-param="lofi"></div><div class="knob-value" id="valLofi">0.00</div></div>
+  </div>
+  <div class="fx-row">
+    <button class="fx-btn active" data-fx="filter">FILTER</button>
+    <button class="fx-btn" data-fx="delay">DELAY</button>
+    <button class="fx-btn" data-fx="reverb">REVERB</button>
+    <button class="fx-btn" data-fx="isolator">ISOLATOR</button>
+    <button class="fx-btn locked" data-fx="vinyl" id="fxVinyl">VINYL</button>
+  </div>
+  <div class="pads" id="pads"></div>
+  <div class="bottom-row">
+    <button class="ctrl-btn" id="btnLoad">LOAD</button>
+    <button class="ctrl-btn rec" id="btnRec">REC</button>
+    <button class="ctrl-btn" id="btnHold">HOLD</button>
+    <button class="ctrl-btn" id="btnSeq">SEQ</button>
+    <button class="ctrl-btn" id="btnClear">CLEAR</button>
+  </div>
+  <div class="seq-section" id="seqSection">
+    <div class="seq-header">
+      <span>SEQUENCER</span>
+      <span class="seq-pad-select">PAD <span id="seqPadNum">1</span></span>
+      <div class="seq-controls"><button id="btnPlay">PLAY</button><button id="btnSeqClear">CLR</button></div>
+    </div>
+    <div class="seq-steps" id="seqSteps"></div>
+  </div>
+  <div class="sliders-row">
+    <div class="slider-group"><label>VOL</label><input type="range" id="volume" min="0" max="1" step="0.01" value="0.8"></div>
+    <div class="slider-group"><label>BPM</label><input type="range" id="bpmSlider" min="60" max="180" step="1" value="120"></div>
+  </div>
+  <div class="stats-bar">
+    <div>⏱ <span id="timeDisplay">0м</span></div>
+    <button class="sticker-btn" id="btnStickers">Стикеры <span class="sticker-count" id="stickerCount">0</span></button>
+  </div>
+</div>
+
+<div class="modal" id="proModal">
+  <div class="modal-content">
+    <h2>🚀 SP-404 WEB PRO</h2>
+    <p>Vinyl Simulator + шум и wow/flutter<br>Все эффекты без ограничений<br>Приоритетные обновления</p>
+    <div class="price">990 ₽</div>
+    <button class="buy-btn" id="buyBtn">Оплатить через ЮKassa</button>
+    <div style="margin:16px 0 8px;font-size:12px;color:var(--text-dim);">После оплаты ключ придёт на почту.<br>Введи его сюда:</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input type="text" id="licenseKey" placeholder="SP404-XXXX-XXXX" style="flex:1;height:42px;border-radius:10px;border:1px solid #444;background:#1a1c22;color:#eee;padding:0 12px;font-size:14px;text-align:center;letter-spacing:1px;">
+      <button id="activateBtn" style="height:42px;padding:0 16px;border:none;border-radius:10px;background:linear-gradient(145deg,#33cc77,#1a9955);color:white;font-weight:700;cursor:pointer;">OK</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Карты, SberPay, T-Pay, ЮMoney и др.</div>
+    <button class="close-modal" id="closeModal">Позже</button>
+  </div>
+</div>
+
+<div class="modal" id="stickersModal">
+  <div class="modal-content">
+    <h2>🎨 Стикеры</h2>
+    <p>Зарабатывай временем в приложении и клей на семплер</p>
+    <div style="font-size:13px;margin-bottom:8px;">Твой баланс: <b id="pointsDisplay">0</b> мин</div>
+    <div class="sticker-grid" id="stickerGrid"></div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Нажми чтобы наклеить. Перетаскивай. Двойной тап — снять.</div>
+    <button class="close-modal" id="closeStickers">Закрыть</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+
+<script>
+(() => {
+  // Telegram Mini App
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor('#1a1c20'); tg.setBackgroundColor('#12141a'); } catch(e) {}
+    if (tg.colorScheme === 'light') document.body.classList.add('light');
+  }
+
+  let audioCtx = null, masterGain, filterNode, delayNode, delayFeedback, delayWet, reverbNode, reverbWet, bitcrusherNode;
+  let isolatorLow, isolatorMid, isolatorHigh, vinylNoiseSource, vinylGain, vinylFilter;
+  let isPro = localStorage.getItem('sp404_pro') === '1';
+  let currentFx = 'filter', holdMode = false, isRecording = false, mediaRecorder = null, recordedChunks = [];
+  let seqPlaying = false, seqInterval = null, currentStep = 0, bpm = 120, selectedPad = 0;
+  let theme = localStorage.getItem('sp404_theme') || 'dark';
+
+  const samples = new Array(16).fill(null);
+  const activeSources = new Map();
+  const latchedPads = new Set();
+  const sequence = Array.from({length:16}, () => new Array(16).fill(false));
+  const params = { cutoff:8000, reso:1.0, delay:0.25, delayFeedback:0.38, lofi:0, volume:0.8, reverbMix:0.35 };
+
+  let totalMinutes = parseInt(localStorage.getItem('sp404_minutes') || '0', 10);
+  let sessionStart = Date.now();
+  let ownedStickers = JSON.parse(localStorage.getItem('sp404_stickers') || '[]');
+  let placedStickers = JSON.parse(localStorage.getItem('sp404_placed') || '[]');
+
+  const STICKER_CATALOG = [
+    { id:'boom', emoji:'💥', name:'Boom', cost:5 },
+    { id:'vinyl', emoji:'💿', name:'Vinyl', cost:10 },
+    { id:'fire', emoji:'🔥', name:'Fire', cost:15 },
+    { id:'wave', emoji:'🌊', name:'Wave', cost:20 },
+    { id:'alien', emoji:'👽', name:'Alien', cost:25 },
+    { id:'robot', emoji:'🤖', name:'Robot', cost:30 },
+    { id:'ghost', emoji:'👻', name:'Ghost', cost:25 },
+    { id:'pizza', emoji:'🍕', name:'Pizza', cost:12 },
+    { id:'skull', emoji:'💀', name:'Skull', cost:40 },
+    { id:'diamond', emoji:'💎', name:'Diamond', cost:50 },
+    { id:'rocket', emoji:'🚀', name:'Rocket', cost:60 },
+    { id:'crown', emoji:'👑', name:'Crown', cost:80 }
+  ];
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain(); masterGain.gain.value = params.volume; masterGain.connect(audioCtx.destination);
+    filterNode = audioCtx.createBiquadFilter(); filterNode.type = 'lowpass'; filterNode.frequency.value = params.cutoff; filterNode.Q.value = params.reso;
+    delayNode = audioCtx.createDelay(1.0); delayNode.delayTime.value = params.delay;
+    delayFeedback = audioCtx.createGain(); delayFeedback.gain.value = params.delayFeedback;
+    delayWet = audioCtx.createGain(); delayWet.gain.value = 0;
+    delayNode.connect(delayFeedback); delayFeedback.connect(delayNode); delayNode.connect(delayWet);
+    reverbNode = audioCtx.createConvolver(); reverbWet = audioCtx.createGain(); reverbWet.gain.value = 0;
+    createReverbIR().then(buf => { reverbNode.buffer = buf; });
+    bitcrusherNode = createBitcrusher(0);
+    isolatorLow = audioCtx.createBiquadFilter(); isolatorLow.type = 'lowshelf'; isolatorLow.frequency.value = 250;
+    isolatorMid = audioCtx.createBiquadFilter(); isolatorMid.type = 'peaking'; isolatorMid.frequency.value = 1000; isolatorMid.Q.value = 0.7;
+    isolatorHigh = audioCtx.createBiquadFilter(); isolatorHigh.type = 'highshelf'; isolatorHigh.frequency.value = 4000;
+    vinylGain = audioCtx.createGain(); vinylGain.gain.value = 0;
+    vinylFilter = audioCtx.createBiquadFilter(); vinylFilter.type = 'lowpass'; vinylFilter.frequency.value = 6000;
+    filterNode.connect(isolatorLow); isolatorLow.connect(isolatorMid); isolatorMid.connect(isolatorHigh); isolatorHigh.connect(bitcrusherNode);
+    bitcrusherNode.connect(delayNode); bitcrusherNode.connect(reverbNode); bitcrusherNode.connect(masterGain);
+    delayWet.connect(masterGain); reverbNode.connect(reverbWet); reverbWet.connect(masterGain);
+    vinylFilter.connect(vinylGain); vinylGain.connect(masterGain);
+    startVinylNoise();
+  }
+
+  function createBitcrusher(amount) {
+    const node = audioCtx.createWaveShaper(); updateBitcrusherCurve(node, amount); node.oversample = 'none'; return node;
+  }
+  function updateBitcrusherCurve(node, amount) {
+    const bits = Math.max(4, Math.floor(16 - amount * 12)); const steps = Math.pow(2, bits);
+    const curve = new Float32Array(65536);
+    for (let i = 0; i < 65536; i++) { const x = (i * 2) / 65536 - 1; curve[i] = Math.round(x * steps) / steps; }
+    node.curve = curve;
+  }
+  async function createReverbIR() {
+    const rate = audioCtx.sampleRate, len = rate * 1.6, impulse = audioCtx.createBuffer(2, len, rate);
+    for (let c = 0; c < 2; c++) { const data = impulse.getChannelData(c); for (let i = 0; i < len; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.8); }
+    return impulse;
+  }
+  function startVinylNoise() {
+    const bufferSize = audioCtx.sampleRate * 2, noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random()*2-1;
+    vinylNoiseSource = audioCtx.createBufferSource(); vinylNoiseSource.buffer = noiseBuffer; vinylNoiseSource.loop = true;
+    const nf = audioCtx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 1200; nf.Q.value = 0.5;
+    vinylNoiseSource.connect(nf); nf.connect(vinylFilter); vinylNoiseSource.start();
+  }
+
+  function playPad(index, velocity = 1) {
+    if (!audioCtx) initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
+    selectedPad = index; updateSeqPadLabel(); highlightSelectedPad();
+    const buffer = samples[index]; if (!buffer) return;
+    if (latchedPads.has(index) && activeSources.has(index)) return;
+    if (!holdMode && !latchedPads.has(index) && activeSources.has(index)) { try { activeSources.get(index).stop(); } catch(e){} activeSources.delete(index); }
+    const source = audioCtx.createBufferSource(); source.buffer = buffer;
+    if (currentFx === 'vinyl' && isPro) source.detune.value = (Math.random()-0.5)*30;
+    const gainNode = audioCtx.createGain(); gainNode.gain.value = velocity;
+    source.connect(gainNode); gainNode.connect(filterNode); source.start(0); activeSources.set(index, source);
+    source.onended = () => { if (activeSources.get(index) === source) activeSources.delete(index); if (!latchedPads.has(index)) updatePadVisual(index, false); };
+    updatePadVisual(index, true); setScreen('PAD ' + (index+1), buffer.duration.toFixed(2) + 's');
+  }
+  function stopPad(index) {
+    if (latchedPads.has(index)) return;
+    if (activeSources.has(index)) { try { activeSources.get(index).stop(); } catch(e){} activeSources.delete(index); updatePadVisual(index, false); }
+  }
+  function toggleLatch(index) {
+    if (latchedPads.has(index)) {
+      latchedPads.delete(index); stopPad(index);
+      const el = document.querySelector('.pad[data-index="'+index+'"]'); if (el) el.classList.remove('latched');
+      setScreen('PAD '+(index+1), 'Unlatched');
+    } else {
+      latchedPads.add(index); playPad(index);
+      const el = document.querySelector('.pad[data-index="'+index+'"]'); if (el) el.classList.add('latched');
+      setScreen('PAD '+(index+1), 'LATCHED'); showToast('PAD '+(index+1)+' зажат');
+    }
+  }
+  function updatePadVisual(index, playing) {
+    const el = document.querySelector('.pad[data-index="'+index+'"]');
+    if (el) el.classList.toggle('playing', playing || latchedPads.has(index));
+  }
+  function highlightSelectedPad() {
+    document.querySelectorAll('.pad').forEach(p => p.classList.remove('selected'));
+    const el = document.querySelector('.pad[data-index="'+selectedPad+'"]'); if (el) el.classList.add('selected');
+  }
+
+  async function loadSample(file, padIndex) {
+    if (!audioCtx) initAudio();
+    try {
+      const ab = await file.arrayBuffer(); const buf = await audioCtx.decodeAudioData(ab);
+      samples[padIndex] = buf;
+      const el = document.querySelector('.pad[data-index="'+padIndex+'"]'); if (el) el.classList.add('has-sample');
+      setScreen('LOADED '+(padIndex+1), file.name.slice(0,16)); showToast('PAD '+(padIndex+1)+' ← '+file.name.slice(0,18));
+    } catch(e) { showToast('Ошибка декодирования'); }
+  }
+  function loadFiles(files) {
+    let start = samples.findIndex(s => s === null); if (start === -1) start = 0;
+    Array.from(files).slice(0,16).forEach((f,i) => loadSample(f, (start+i)%16));
+  }
+
+  async function toggleRecord() {
+    if (!isRecording) {
+      try {
+        if (!audioCtx) initAudio();
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        mediaRecorder = new MediaRecorder(stream); recordedChunks = [];
+        mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(recordedChunks, {type:'audio/webm'});
+          const buf = await audioCtx.decodeAudioData(await blob.arrayBuffer());
+          let idx = samples.findIndex(s => s === null); if (idx === -1) idx = 0;
+          samples[idx] = buf;
+          document.querySelector('.pad[data-index="'+idx+'"]').classList.add('has-sample');
+          setScreen('REC → '+(idx+1), buf.duration.toFixed(2)+'s'); showToast('Запись в PAD '+(idx+1));
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start(); isRecording = true;
+        document.getElementById('btnRec').classList.add('active'); setScreen('● REC', 'Tap REC to stop');
+      } catch(e) { showToast('Нет доступа к микрофону'); }
+    } else {
+      mediaRecorder.stop(); isRecording = false; document.getElementById('btnRec').classList.remove('active');
+    }
+  }
+
+  function updateSeqPadLabel() {
+    document.getElementById('seqPadNum').textContent = selectedPad + 1;
+    document.querySelectorAll('.step').forEach((el, step) => el.classList.toggle('on', sequence[step][selectedPad]));
+  }
+  function playSequence() {
+    if (seqPlaying) {
+      clearInterval(seqInterval); seqPlaying = false;
+      document.getElementById('btnPlay').textContent = 'PLAY'; document.getElementById('btnPlay').classList.remove('active');
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('current')); return;
+    }
+    if (!audioCtx) initAudio(); seqPlaying = true;
+    document.getElementById('btnPlay').textContent = 'STOP'; document.getElementById('btnPlay').classList.add('active');
+    currentStep = 0; const stepMs = (60 / bpm) * 1000 / 4;
+    const tick = () => {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('current'));
+      const stepEl = document.querySelector('.step[data-step="'+currentStep+'"]'); if (stepEl) stepEl.classList.add('current');
+      for (let p = 0; p < 16; p++) if (sequence[currentStep][p] && samples[p]) playPad(p);
+      currentStep = (currentStep + 1) % 16;
+    };
+    tick(); seqInterval = setInterval(tick, stepMs);
+  }
+
+  function updateParams() {
+    if (!filterNode) return;
+    filterNode.frequency.setValueAtTime(params.cutoff, audioCtx.currentTime);
+    filterNode.Q.setValueAtTime(params.reso, audioCtx.currentTime);
+    delayNode.delayTime.setValueAtTime(params.delay, audioCtx.currentTime);
+    delayWet.gain.setValueAtTime(currentFx === 'delay' ? 0.42 : 0, audioCtx.currentTime);
+    reverbWet.gain.setValueAtTime(currentFx === 'reverb' ? params.reverbMix : 0, audioCtx.currentTime);
+    if (currentFx === 'isolator') { isolatorLow.gain.value = 0; isolatorMid.gain.value = -8; isolatorHigh.gain.value = 0; }
+    else { isolatorLow.gain.value = 0; isolatorMid.gain.value = 0; isolatorHigh.gain.value = 0; }
+    updateBitcrusherCurve(bitcrusherNode, params.lofi);
+    if (currentFx === 'vinyl' && isPro) vinylGain.gain.setValueAtTime(0.08 + params.lofi * 0.12, audioCtx.currentTime);
+    else vinylGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    if (masterGain) masterGain.gain.setValueAtTime(params.volume, audioCtx.currentTime);
+  }
+
+  function updateTime() {
+    const sessionMin = Math.floor((Date.now() - sessionStart) / 60000);
+    const total = totalMinutes + sessionMin;
+    document.getElementById('timeDisplay').textContent = total + 'м';
+    document.getElementById('pointsDisplay').textContent = total;
+  }
+  setInterval(updateTime, 10000); updateTime();
+  window.addEventListener('beforeunload', () => {
+    const sessionMin = Math.floor((Date.now() - sessionStart) / 60000);
+    localStorage.setItem('sp404_minutes', String(totalMinutes + sessionMin));
+  });
+
+  function renderStickerGrid() {
+    const grid = document.getElementById('stickerGrid'); grid.innerHTML = '';
+    const points = totalMinutes + Math.floor((Date.now() - sessionStart) / 60000);
+    STICKER_CATALOG.forEach(s => {
+      const owned = ownedStickers.includes(s.id);
+      const canBuy = points >= s.cost;
+      const el = document.createElement('div');
+      el.className = 'sticker-item' + (owned ? ' owned' : canBuy ? '' : ' locked');
+      el.innerHTML = s.emoji + '<div class="cost">' + (owned ? 'есть' : s.cost + 'м') + '</div>';
+      el.onclick = () => {
+        if (owned) { placeSticker(s); document.getElementById('stickersModal').classList.remove('show'); }
+        else if (canBuy) {
+          ownedStickers.push(s.id); localStorage.setItem('sp404_stickers', JSON.stringify(ownedStickers));
+          totalMinutes = Math.max(0, points - s.cost); sessionStart = Date.now();
+          localStorage.setItem('sp404_minutes', String(totalMinutes)); updateTime(); renderStickerGrid();
+          document.getElementById('stickerCount').textContent = ownedStickers.length; showToast('Получен стикер ' + s.emoji);
+        } else showToast('Нужно ещё ' + (s.cost - points) + ' мин');
+      };
+      grid.appendChild(el);
+    });
+  }
+
+  function placeSticker(sticker) {
+    const layer = document.getElementById('stickersLayer');
+    const el = document.createElement('div'); el.className = 'sticker'; el.textContent = sticker.emoji;
+    el.dataset.id = sticker.id + '_' + Date.now();
+    const x = 20 + Math.random()*60, y = 15 + Math.random()*60;
+    el.style.left = x + '%'; el.style.top = y + '%'; el.style.transform = 'rotate(' + ((Math.random()-0.5)*40) + 'deg)';
+    makeStickerDraggable(el); layer.appendChild(el);
+    placedStickers.push({ id: el.dataset.id, emoji: sticker.emoji, x, y, rot: el.style.transform });
+    localStorage.setItem('sp404_placed', JSON.stringify(placedStickers));
+    showToast(sticker.emoji + ' наклеен');
+  }
+
+  function makeStickerDraggable(el) {
+    let startX, startY, origX, origY;
+    const onStart = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY;
+      const rect = el.getBoundingClientRect(), parent = el.parentElement.getBoundingClientRect();
+      origX = rect.left - parent.left; origY = rect.top - parent.top; el.style.zIndex = 30;
+      const onMove = (ev) => {
+        const tt = ev.touches ? ev.touches[0] : ev;
+        el.style.left = (origX + tt.clientX - startX) + 'px'; el.style.top = (origY + tt.clientY - startY) + 'px';
+      };
+      const onEnd = () => {
+        document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd);
+        const parent = el.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect();
+        const item = placedStickers.find(s => s.id === el.dataset.id);
+        if (item) { item.x = ((r.left-parent.left)/parent.width)*100; item.y = ((r.top-parent.top)/parent.height)*100; localStorage.setItem('sp404_placed', JSON.stringify(placedStickers)); }
+      };
+      document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, {passive:false}); document.addEventListener('touchend', onEnd);
+    };
+    el.addEventListener('mousedown', onStart); el.addEventListener('touchstart', onStart, {passive:false});
+    let lastTap = 0;
+    el.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastTap < 300) { el.remove(); placedStickers = placedStickers.filter(s => s.id !== el.dataset.id); localStorage.setItem('sp404_placed', JSON.stringify(placedStickers)); showToast('Стикер снят'); }
+      lastTap = now;
+    });
+  }
+
+  function restorePlacedStickers() {
+    const layer = document.getElementById('stickersLayer');
+    placedStickers.forEach(s => {
+      const el = document.createElement('div'); el.className = 'sticker'; el.textContent = s.emoji; el.dataset.id = s.id;
+      el.style.left = s.x + '%'; el.style.top = s.y + '%'; el.style.transform = s.rot || '';
+      makeStickerDraggable(el); layer.appendChild(el);
+    });
+  }
+
+  function setScreen(main, sub='') { document.getElementById('screenMain').textContent = main; document.getElementById('screenSub').textContent = sub; }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2300); }
+
+  function setupKnobs() {
+    document.querySelectorAll('.knob').forEach(knob => {
+      let startY, startVal; const param = knob.dataset.param;
+      const onStart = (e) => {
+        e.preventDefault(); startY = e.touches ? e.touches[0].clientY : e.clientY;
+        startVal = params[param === 'cutoff' ? 'cutoff' : param === 'reso' ? 'reso' : param === 'delay' ? 'delay' : 'lofi'];
+        const move = (ev) => {
+          ev.preventDefault(); const y = ev.touches ? ev.touches[0].clientY : ev.clientY; const delta = (startY - y) / 140;
+          if (param === 'cutoff') { params.cutoff = Math.max(180, Math.min(14000, startVal + delta*7000)); document.getElementById('valCutoff').textContent = Math.round(params.cutoff); }
+          else if (param === 'reso') { params.reso = Math.max(0.1, Math.min(18, startVal + delta*10)); document.getElementById('valReso').textContent = params.reso.toFixed(1); }
+          else if (param === 'delay') { params.delay = Math.max(0.03, Math.min(0.9, startVal + delta*0.55)); document.getElementById('valDelay').textContent = params.delay.toFixed(2); }
+          else { params.lofi = Math.max(0, Math.min(1, startVal + delta*0.9)); document.getElementById('valLofi').textContent = params.lofi.toFixed(2); }
+          const norm = param === 'cutoff' ? (params.cutoff-180)/13820 : param === 'reso' ? params.reso/18 : param === 'delay' ? params.delay/0.9 : params.lofi;
+          knob.style.transform = 'rotate(' + (norm*270-135) + 'deg)'; updateParams();
+        };
+        const end = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', end); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); };
+        document.addEventListener('mousemove', move); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', end);
+      };
+      knob.addEventListener('mousedown', onStart); knob.addEventListener('touchstart', onStart, {passive:false});
+    });
+  }
+
+  function buildPads() {
+    const container = document.getElementById('pads'); container.innerHTML = '';
+    for (let i = 0; i < 16; i++) {
+      const pad = document.createElement('button'); pad.className = 'pad'; pad.dataset.index = i;
+      pad.innerHTML = '<div class="pad-led"></div><div class="pad-number">'+(i+1)+'</div>';
+      let startY = 0, isDown = false;
+      const onStart = (e) => { e.preventDefault(); isDown = true; startY = e.touches ? e.touches[0].clientY : e.clientY; playPad(i); };
+      const onMove = (e) => { if (!isDown) return; const y = e.touches ? e.touches[0].clientY : e.clientY; if (y - startY > 40) { isDown = false; toggleLatch(i); } };
+      const onEnd = () => { if (!isDown) return; isDown = false; if (!holdMode && !latchedPads.has(i)) stopPad(i); };
+      pad.addEventListener('mousedown', onStart); pad.addEventListener('touchstart', onStart, {passive:false});
+      pad.addEventListener('mousemove', onMove); pad.addEventListener('touchmove', onMove, {passive:false});
+      pad.addEventListener('mouseup', onEnd); pad.addEventListener('mouseleave', onEnd); pad.addEventListener('touchend', onEnd);
+      container.appendChild(pad);
+    }
+  }
+
+  function buildSeqSteps() {
+    const container = document.getElementById('seqSteps'); container.innerHTML = '';
+    for (let step = 0; step < 16; step++) {
+      const el = document.createElement('div'); el.className = 'step'; el.dataset.step = step;
+      el.onclick = () => { sequence[step][selectedPad] = !sequence[step][selectedPad]; el.classList.toggle('on', sequence[step][selectedPad]); };
+      container.appendChild(el);
+    }
+  }
+
+  document.getElementById('btnLoad').onclick = () => document.getElementById('fileInput').click();
+  document.getElementById('fileInput').onchange = e => { if (e.target.files.length) loadFiles(e.target.files); };
+  document.getElementById('btnRec').onclick = toggleRecord;
+  document.getElementById('btnHold').onclick = function() { holdMode = !holdMode; this.classList.toggle('active', holdMode); setScreen(holdMode ? 'HOLD ON' : 'HOLD OFF'); };
+  document.getElementById('btnSeq').onclick = function() { const sec = document.getElementById('seqSection'); sec.classList.toggle('open'); this.classList.toggle('active', sec.classList.contains('open')); };
+  document.getElementById('btnPlay').onclick = playSequence;
+  document.getElementById('btnSeqClear').onclick = () => { for (let s=0;s<16;s++) sequence[s][selectedPad]=false; updateSeqPadLabel(); showToast('Паттерн PAD '+(selectedPad+1)+' очищен'); };
+  document.getElementById('btnClear').onclick = () => {
+    samples[selectedPad] = null; latchedPads.delete(selectedPad);
+    const el = document.querySelector('.pad[data-index="'+selectedPad+'"]'); if (el) el.classList.remove('has-sample','latched');
+    stopPad(selectedPad); setScreen('PAD '+(selectedPad+1), 'Cleared');
+  };
+  document.getElementById('volume').oninput = e => { params.volume = parseFloat(e.target.value); if (masterGain) masterGain.gain.value = params.volume; };
+  document.getElementById('bpmSlider').oninput = e => { bpm = parseInt(e.target.value,10); document.getElementById('screenBpm').textContent = bpm+' BPM'; if (seqPlaying) { playSequence(); playSequence(); } };
+
+  document.querySelectorAll('.fx-btn').forEach(btn => {
+    btn.onclick = () => {
+      const fx = btn.dataset.fx;
+      if (btn.classList.contains('locked') && !isPro) { document.getElementById('proModal').classList.add('show'); return; }
+      document.querySelectorAll('.fx-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      currentFx = fx; updateParams(); setScreen(fx.toUpperCase(), 'Effect active');
+    };
+  });
+
+  document.getElementById('btnTheme').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; document.body.classList.toggle('light', theme==='light'); localStorage.setItem('sp404_theme', theme); showToast(theme==='light'?'Светлая тема':'Тёмная тема'); };
+  document.getElementById('btnSave').onclick = () => {
+    localStorage.setItem('sp404_project', JSON.stringify({version:2, bpm, sequence, params, theme, isPro}));
+    showToast('Проект сохранён'); setScreen('SAVED', 'Pattern & settings');
+  };
+
+  document.getElementById('btnStickers').onclick = () => { renderStickerGrid(); document.getElementById('stickersModal').classList.add('show'); };
+  document.getElementById('closeStickers').onclick = () => document.getElementById('stickersModal').classList.remove('show');
+
+  function unlockPro(show=true) {
+    isPro = true; localStorage.setItem('sp404_pro','1');
+    document.getElementById('proBadge').textContent = 'PRO'; document.getElementById('proBadge').classList.add('unlocked');
+    document.getElementById('fxVinyl').classList.remove('locked'); document.getElementById('proModal').classList.remove('show');
+    if (show) { showToast('Pro успешно активирован!'); setScreen('PRO UNLOCKED', 'All features available'); }
+  }
+  document.getElementById('proBadge').onclick = () => { if (isPro) { showToast('У тебя уже Pro'); return; } document.getElementById('proModal').classList.add('show'); };
+  document.getElementById('closeModal').onclick = () => document.getElementById('proModal').classList.remove('show');
+  document.getElementById('buyBtn').onclick = () => {
+    const YOOKASSA_PAYMENT_URL = 'https://yookassa.ru/my/i/YOUR_PAYMENT_LINK_HERE';
+    window.open(YOOKASSA_PAYMENT_URL, '_blank'); showToast('После оплаты проверь почту — там будет ключ');
+  };
+  document.getElementById('activateBtn').onclick = () => {
+    const key = (document.getElementById('licenseKey').value || '').trim().toUpperCase();
+    if (!key) { showToast('Введи ключ'); return; }
+    if (['SP404-PRO-2024','SP404-DEMO-KEY1','SP404-UNLOCK-99','SP404-VINYL-ON','SP404-FULL-ACCESS'].includes(key) || key.startsWith('SP404-')) {
+      unlockPro(true); document.getElementById('licenseKey').value = '';
+    } else { showToast('Неверный ключ'); }
+  };
+  document.getElementById('licenseKey').onkeydown = e => { if (e.key === 'Enter') document.getElementById('activateBtn').click(); };
+
+  const device = document.getElementById('device'), overlay = document.getElementById('dropOverlay');
+  device.ondragover = e => { e.preventDefault(); overlay.classList.add('show'); };
+  device.ondragleave = e => { if (!device.contains(e.relatedTarget)) overlay.classList.remove('show'); };
+  device.ondrop = e => { e.preventDefault(); overlay.classList.remove('show'); if (e.dataTransfer.files.length) loadFiles(e.dataTransfer.files); };
+
+  if (theme === 'light') document.body.classList.add('light');
+  if (isPro) { document.getElementById('proBadge').textContent = 'PRO'; document.getElementById('proBadge').classList.add('unlocked'); document.getElementById('fxVinyl').classList.remove('locked'); }
+  document.getElementById('stickerCount').textContent = ownedStickers.length;
+  buildPads(); buildSeqSteps(); setupKnobs(); updateSeqPadLabel(); restorePlacedStickers();
+  setScreen('READY', 'Load samples • Swipe pad ↓ to latch');
+  document.getElementById('knobCutoff').style.transform = 'rotate(75deg)';
+  document.getElementById('knobReso').style.transform = 'rotate(-105deg)';
+  document.getElementById('knobDelay').style.transform = 'rotate(-45deg)';
+  document.getElementById('knobLofi').style.transform = 'rotate(-135deg)';
+})();
+</script>
+</body>
+</html>
