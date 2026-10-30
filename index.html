@@ -39,6 +39,7 @@
       linear-gradient(160deg, #32353c 0%, #25282e 40%, #1c1f24 100%);
     display: flex; flex-direction: column;
     padding: 8px 10px 10px;
+    padding-top: max(12px, env(safe-area-inset-top), var(--tg-safe-top, 54px));
     position: relative;
     overflow: hidden;
     box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
@@ -533,8 +534,21 @@
 (() => {
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg) {
-    tg.ready(); tg.expand();
-    try { tg.setHeaderColor('#1c1f24'); tg.setBackgroundColor('#0a0c10'); } catch(e) {}
+    tg.ready();
+    tg.expand();
+    try {
+      tg.setHeaderColor('#1c1f24');
+      tg.setBackgroundColor('#0a0c10');
+      // Убираем наезд шапки Telegram на интерфейс
+      const topInset = (tg.safeAreaInset && tg.safeAreaInset.top) ||
+                       (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) || 54;
+      document.documentElement.style.setProperty('--tg-safe-top', (topInset + 8) + 'px');
+      if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+    } catch(e) {
+      document.documentElement.style.setProperty('--tg-safe-top', '58px');
+    }
+  } else {
+    document.documentElement.style.setProperty('--tg-safe-top', '12px');
   }
 
   let audioCtx, masterGain, filterNode, delayNode, delayFeedback, delayWet, reverbNode, reverbWet, bitcrusherNode;
@@ -814,15 +828,44 @@
       let startY,startVal; const param=knob.dataset.param;
       const onStart=e=>{
         e.preventDefault(); startY=e.touches?e.touches[0].clientY:e.clientY;
-        startVal=params[param==='cutoff'?'cutoff':param==='reso'?'reso':param==='delay'?'delay':'lofi'];
+        if (chopEdit && param==='delay') startVal = padModes[selectedPad].start;
+        else if (chopEdit && param==='lofi') startVal = padModes[selectedPad].end;
+        else startVal=params[param==='cutoff'?'cutoff':param==='reso'?'reso':param==='delay'?'delay':'lofi'];
         const move=ev=>{
           ev.preventDefault(); const y=ev.touches?ev.touches[0].clientY:ev.clientY; const d=(startY-y)/130;
           if(param==='cutoff'){ params.cutoff=Math.max(180,Math.min(14000,startVal+d*7000)); document.getElementById('valCutoff').textContent=Math.round(params.cutoff); }
           else if(param==='reso'){ params.reso=Math.max(0.1,Math.min(18,startVal+d*10)); document.getElementById('valReso').textContent=params.reso.toFixed(1); }
-          else if(param==='delay'){ params.delay=Math.max(0.03,Math.min(0.9,startVal+d*0.55)); document.getElementById('valDelay').textContent=params.delay.toFixed(2); }
-          else { params.lofi=Math.max(0,Math.min(1,startVal+d*0.9)); document.getElementById('valLofi').textContent=params.lofi.toFixed(2); }
-          const norm=param==='cutoff'?(params.cutoff-180)/13820:param==='reso'?params.reso/18:param==='delay'?params.delay/0.9:params.lofi;
-          knob.style.transform='rotate('+(norm*270-135)+'deg)'; updateParams();
+          else if(param==='delay'){
+            if (chopEdit) {
+              const m = padModes[selectedPad];
+              m.start = Math.max(0, Math.min(0.95, (typeof startVal==='number'&&startVal<=1?startVal:m.start) + d*0.6));
+              if (m.start >= m.end) m.end = Math.min(1, m.start + 0.05);
+              document.getElementById('valDelay').textContent = (m.start*100).toFixed(0)+'%';
+              setScreen('TRIM '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
+            } else {
+              params.delay=Math.max(0.03,Math.min(0.9,startVal+d*0.55)); document.getElementById('valDelay').textContent=params.delay.toFixed(2);
+            }
+          }
+          else {
+            if (chopEdit) {
+              const m = padModes[selectedPad];
+              m.end = Math.max(0.05, Math.min(1, (typeof startVal==='number'&&startVal<=1?startVal:m.end) + d*0.6));
+              if (m.end <= m.start) m.start = Math.max(0, m.end - 0.05);
+              document.getElementById('valLofi').textContent = (m.end*100).toFixed(0)+'%';
+              setScreen('TRIM '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
+            } else {
+              params.lofi=Math.max(0,Math.min(1,startVal+d*0.9)); document.getElementById('valLofi').textContent=params.lofi.toFixed(2);
+            }
+          }
+          let norm;
+          if (chopEdit && (param==='delay'||param==='lofi')) {
+            const m = padModes[selectedPad];
+            norm = param==='delay' ? m.start : m.end;
+          } else {
+            norm=param==='cutoff'?(params.cutoff-180)/13820:param==='reso'?params.reso/18:param==='delay'?params.delay/0.9:params.lofi;
+          }
+          knob.style.transform='rotate('+(norm*270-135)+'deg)';
+          if (!chopEdit) updateParams();
         };
         const end=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',end); document.removeEventListener('touchmove',move); document.removeEventListener('touchend',end); };
         document.addEventListener('mousemove',move); document.addEventListener('mouseup',end);
@@ -872,14 +915,23 @@
     updateModeButtons();
     setScreen('PAD '+(selectedPad+1), padModes[selectedPad].gate?'GATE ON':'GATE OFF');
   };
+  let chopEdit = false; // when true, TIME knob = start, LO-FI knob = end
   document.getElementById('btnChop').onclick=()=>{
     if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
-    // simple chop: cycle start points
-    const m=padModes[selectedPad];
-    m.start=(m.start+0.25)%0.75;
-    m.end=Math.min(1, m.start+0.5);
-    setScreen('CHOP', 'Start '+(m.start*100).toFixed(0)+'%');
-    showToast('Chop: start '+(m.start*100).toFixed(0)+'%');
+    chopEdit = !chopEdit;
+    document.getElementById('btnChop').classList.toggle('active', chopEdit);
+    if (chopEdit) {
+      const m = padModes[selectedPad];
+      setScreen('TRIM PAD '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
+      showToast('TRIM: крути TIME=старт, LO-FI=конец');
+      document.getElementById('valDelay').previousElementSibling?.classList;
+      document.querySelector('#knobDelay')?.parentElement.querySelector('.knob-label').textContent = 'START';
+      document.querySelector('#knobLofi')?.parentElement.querySelector('.knob-label').textContent = 'END';
+    } else {
+      document.querySelector('#knobDelay')?.parentElement.querySelector('.knob-label').textContent = 'TIME';
+      document.querySelector('#knobLofi')?.parentElement.querySelector('.knob-label').textContent = 'LO-FI';
+      setScreen('PAD '+(selectedPad+1), 'Trim off');
+    }
   };
   document.getElementById('btnPitch').onclick=()=>{
     if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
