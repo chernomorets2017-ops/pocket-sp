@@ -352,15 +352,26 @@
 
   .stats-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 5px 8px; background: rgba(0,0,0,0.3); border-radius: 7px;
+    padding: 6px 8px; background: rgba(0,0,0,0.3); border-radius: 7px;
     font-size: 10px; color: var(--text-dim); position: relative; z-index: 5; flex-shrink: 0;
+    gap: 8px;
   }
-  .sticker-btn {
-    background: linear-gradient(145deg, #6c5ce7, #5a4bd1);
-    color: white; border: none; border-radius: 6px;
-    padding: 4px 9px; font-size: 10px; font-weight: 700; cursor: pointer;
+  .util-left { display: flex; gap: 6px; align-items: center; }
+  .util-btn {
+    height: 28px; min-width: 32px; padding: 0 8px; border-radius: 6px; border: none;
+    background: linear-gradient(145deg, #3a3d45, #282b31); color: #ccc;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
   }
-  .sticker-count { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 1px 5px; font-size: 9px; margin-left: 3px; }
+  .util-btn.pro-util {
+    background: linear-gradient(145deg, #d4a017, #b8860b); color: #1a1a1a; font-size: 10px;
+  }
+  .channel-link {
+    color: #6ab0ff; text-decoration: none; font-size: 11px; font-weight: 600;
+    padding: 6px 10px; border-radius: 6px; background: rgba(40,120,255,0.12);
+    border: 1px solid rgba(100,160,255,0.25); white-space: nowrap;
+  }
+  .channel-link:active { opacity: 0.8; }
 
   /* MODALS */
   .modal {
@@ -424,8 +435,6 @@
   <div class="top-bar">
     <div class="logo">SP-<span>404</span> WEB</div>
     <div class="top-actions">
-      <button class="icon-btn" id="btnTheme">🌓</button>
-      <button class="icon-btn" id="btnSave">💾</button>
       <div class="pro-badge" id="proBadge">FREE</div>
     </div>
   </div>
@@ -494,8 +503,12 @@
   </div>
 
   <div class="stats-bar">
-    <div>⏱ <span id="timeDisplay">0м</span></div>
-    <button class="sticker-btn" id="btnStickers">Стикеры <span class="sticker-count" id="stickerCount">0</span></button>
+    <div class="util-left">
+      <button class="util-btn" id="btnTheme" title="Тема">🌓</button>
+      <button class="util-btn" id="btnSave" title="Сохранить">💾</button>
+      <button class="util-btn pro-util" id="btnProBottom">PRO</button>
+    </div>
+    <a class="channel-link" href="https://t.me/rolikcosmetic" target="_blank" rel="noopener">📢 rolikcosmetic</a>
   </div>
 </div>
 
@@ -503,7 +516,7 @@
 <div class="modal" id="proModal">
   <div class="modal-content">
     <h2>🚀 SP-404 WEB PRO</h2>
-    <p>VINYL · CHOP · PITCH<br>Все эффекты + приоритетные обновления</p>
+    <p>VINYL · CHOP · PITCH<br>Все эффекты + приоритетные обновления<br><br>Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
     <div class="price">990 ₽</div>
     <button class="buy-btn" id="buyBtn">Оплатить через ЮKassa</button>
     <div style="margin:12px 0 6px;font-size:11px;color:var(--text-dim);">Ключ после оплаты:</div>
@@ -512,18 +525,6 @@
       <button id="activateBtn" style="height:38px;padding:0 14px;border:none;border-radius:8px;background:linear-gradient(145deg,#27ae60,#1e8449);color:#fff;font-weight:700;cursor:pointer;">OK</button>
     </div>
     <button class="close-modal" id="closeModal">Позже</button>
-  </div>
-</div>
-
-<!-- STICKERS -->
-<div class="modal" id="stickersModal">
-  <div class="modal-content">
-    <h2>🎨 Стикеры</h2>
-    <p>За минуты в приложении</p>
-    <div style="font-size:12px;margin-bottom:6px;">Баланс: <b id="pointsDisplay">0</b> мин</div>
-    <div class="sticker-grid" id="stickerGrid"></div>
-    <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">Тап — наклеить · Двойной тап — снять</div>
-    <button class="close-modal" id="closeStickers">Закрыть</button>
   </div>
 </div>
 
@@ -811,14 +812,7 @@
     if(masterGain) masterGain.gain.setValueAtTime(params.volume, audioCtx.currentTime);
   }
 
-  function updateTime() {
-    const sm=Math.floor((Date.now()-sessionStart)/60000);
-    const total=totalMinutes+sm;
-    document.getElementById('timeDisplay').textContent=total+'м';
-    document.getElementById('pointsDisplay').textContent=total;
-  }
-  setInterval(updateTime,10000); updateTime();
-  window.addEventListener('beforeunload',()=>{ localStorage.setItem('sp404_minutes',String(totalMinutes+Math.floor((Date.now()-sessionStart)/60000))); });
+  window.addEventListener('beforeunload',()=>{ try { localStorage.setItem('sp404_minutes',String(totalMinutes+Math.floor((Date.now()-sessionStart)/60000))); } catch(e){} });
 
   function setScreen(main,sub=''){ document.getElementById('screenMain').textContent=main; document.getElementById('screenSub').textContent=sub; }
   function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
@@ -1025,12 +1019,11 @@
     });
   }
 
-  document.getElementById('btnStickers').onclick=()=>{ renderStickerGrid(); document.getElementById('stickersModal').classList.add('show'); };
-  document.getElementById('closeStickers').onclick=()=>document.getElementById('stickersModal').classList.remove('show');
-
+  
   function unlockPro(show=true){
     isPro=true; localStorage.setItem('sp404_pro','1');
     document.getElementById('proBadge').textContent='PRO'; document.getElementById('proBadge').classList.add('unlocked');
+    const bp=document.getElementById('btnProBottom'); if(bp){ bp.textContent='PRO ✓'; bp.style.background='linear-gradient(145deg,#2ecc71,#27ae60)'; bp.style.color='#fff'; }
     document.getElementById('fxVinyl').classList.remove('locked');
     document.getElementById('btnChop').classList.remove('pro-lock');
     document.getElementById('btnPitch').classList.remove('pro-lock');
@@ -1038,9 +1031,11 @@
     if(show){ showToast('Pro активирован!'); setScreen('PRO','Unlocked'); }
   }
   document.getElementById('proBadge').onclick=()=>{ if(isPro){showToast('Уже Pro');return;} document.getElementById('proModal').classList.add('show'); };
+  const btnProBottom=document.getElementById('btnProBottom');
+  if(btnProBottom) btnProBottom.onclick=()=>{ if(isPro){showToast('Уже Pro');return;} document.getElementById('proModal').classList.add('show'); };
   document.getElementById('closeModal').onclick=()=>document.getElementById('proModal').classList.remove('show');
   document.getElementById('buyBtn').onclick=()=>{
-    const URL='https://yookassa.ru/my/i/auR8wa3O5hN5/I';
+    const URL='https://yookassa.ru/my/i/auR8wq3O5hN5/l';
     window.open(URL,'_blank'); showToast('После оплаты — ключ на почту');
   };
   document.getElementById('activateBtn').onclick=()=>{
@@ -1057,8 +1052,7 @@
 
   // init
   if(isPro) unlockPro(false);
-  document.getElementById('stickerCount').textContent=ownedStickers.length;
-  buildPads(); buildSeqSteps(); setupKnobs(); updateSeqPadLabel(); restoreStickers(); updateModeButtons();
+  buildPads(); buildSeqSteps(); setupKnobs(); updateSeqPadLabel(); updateModeButtons();
   setScreen('READY','Load • Swipe ↓ latch');
   document.getElementById('knobCutoff').style.transform='rotate(70deg)';
   document.getElementById('knobReso').style.transform='rotate(-100deg)';
