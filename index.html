@@ -194,13 +194,13 @@
     margin-bottom: 6px; position: relative; z-index: 5; flex-shrink: 0;
   }
   .mode-row {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
     margin-bottom: 7px; position: relative; z-index: 5; flex-shrink: 0;
   }
   .fx-btn, .mode-btn {
     background: linear-gradient(145deg, #3a3d45, #282b31);
     border: none; border-radius: 7px; height: 30px;
-    color: #bbb; font-size: 8px; font-weight: 700; letter-spacing: 0.2px;
+    color: #bbb; font-size: 7px; font-weight: 700; letter-spacing: 0.1px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
     cursor: pointer; position: relative; overflow: hidden;
   }
@@ -474,6 +474,7 @@
     <button class="mode-btn" id="btnGate" data-mode="gate">GATE</button>
     <button class="mode-btn pro-lock" id="btnChop" data-mode="chop">CHOP</button>
     <button class="mode-btn pro-lock" id="btnPitch" data-mode="pitch">PITCH</button>
+    <button class="mode-btn" id="btnKey" data-mode="key">KEY</button>
   </div>
 
   <div class="pads" id="pads"></div>
@@ -504,7 +505,7 @@
 
   <div class="stats-bar">
     <div class="util-left">
-      <button class="util-btn" id="btnTheme" title="Тема">🌓</button>
+      <button class="util-btn" id="btnHelp" title="Справка">❓</button>
       <button class="util-btn" id="btnSave" title="Сохранить">💾</button>
       <button class="util-btn pro-util" id="btnProBottom">PRO</button>
     </div>
@@ -528,8 +529,34 @@
   </div>
 </div>
 
+
+<div class="modal" id="helpModal">
+  <div class="modal-content" style="max-width:340px;text-align:left;max-height:80vh;overflow-y:auto;">
+    <h2 style="text-align:center;">📖 Справка</h2>
+    <div style="font-size:11px;line-height:1.45;color:#bbb;">
+      <p><b style="color:#e85a2a">ПЭДЫ 1–16</b> — запуск семпла. Свайп вниз — зажим (latch).</p>
+      <p><b style="color:#e85a2a">LOAD</b> — загрузить аудио с устройства.</p>
+      <p><b style="color:#e85a2a">REC</b> — запись с микрофона на свободный пад.</p>
+      <p><b style="color:#e85a2a">HOLD</b> — держать ноту, пока не отпустишь режим.</p>
+      <p><b style="color:#e85a2a">SEQ</b> — секвенсор: шаги для выбранного пада, PLAY.</p>
+      <p><b style="color:#e85a2a">CLEAR</b> — очистить выбранный пад.</p>
+      <p><b style="color:#e85a2a">LOOP / REVERSE / GATE</b> — режимы семпла на паде.</p>
+      <p><b style="color:#e85a2a">CHOP (PRO)</b> — обрезка: TIME=START, LO-FI=END.</p>
+      <p><b style="color:#e85a2a">PITCH (PRO)</b> — тон семпла (± полутона).</p>
+      <p><b style="color:#e85a2a">KEY</b> — тональность (C–B). Долгое нажатие — назад.</p>
+      <p><b style="color:#e85a2a">Экран</b> — волна пэда при нажатии; тап — смена визуала.</p>
+      <p><b style="color:#e85a2a">FILTER…VINYL</b> — эффекты. VINYL — в PRO.</p>
+      <p><b style="color:#e85a2a">Крутилки</b> — cutoff, reso, delay time, lo-fi.</p>
+      <p><b style="color:#e85a2a">💾</b> — экспорт текущего микса в WAV (скачивание).</p>
+      <p><b style="color:#e85a2a">Экран</b> — тапни: вспышка / смена визуала.</p>
+      <p style="margin-top:8px;">Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
+    </div>
+    <button class="close-modal" id="closeHelp" style="display:block;width:100%;margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="audio/*" multiple>
+<input type="file" id="fileInput" accept="audio/*,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/aac,.mp3,.m4a,.wav,.aac,.ogg,.caf" multiple>
 
 <script>
 (() => {
@@ -559,6 +586,10 @@
   let seqPlaying = false, seqInterval, currentStep = 0, bpm = 120, selectedPad = 0;
   let theme = localStorage.getItem('sp404_theme') || 'dark';
   let chopEdit = false;
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  let globalKey = 0; // 0=C, transpose in semitones applied on top of pad pitch
+  let lastPadWave = null;
+
 
   // per-pad modes
   const padModes = Array.from({length:16}, () => ({ loop: false, reverse: false, gate: true, start: 0, end: 1, pitch: 0 }));
@@ -632,35 +663,95 @@
     vinylNoiseSource.connect(nf); nf.connect(vinylFilter); vinylNoiseSource.start();
   }
 
+  let vizMode = 0; // 0 wave, 1 bars, 2 pulse
+  let screenFlash = 0;
   function startVisualizer() {
     const canvas=document.getElementById('waveCanvas');
     const ctx=canvas.getContext('2d');
     const data=new Uint8Array(analyser.frequencyBinCount);
+    const freq=new Uint8Array(analyser.frequencyBinCount);
     function draw() {
       animId=requestAnimationFrame(draw);
-      const w=canvas.parentElement.clientWidth-20;
+      const parent=canvas.parentElement;
+      const w=Math.max(100, parent.clientWidth-20);
       const h=28;
       canvas.width=w; canvas.height=h;
       analyser.getByteTimeDomainData(data);
+      analyser.getByteFrequencyData(freq);
       ctx.clearRect(0,0,w,h);
-      ctx.strokeStyle='#3dff9a';
-      ctx.lineWidth=1.5;
-      ctx.beginPath();
-      const slice=w/data.length;
-      for(let i=0;i<data.length;i++){
-        const v=data[i]/128.0;
-        const y=v*h/2;
-        if(i===0) ctx.moveTo(0,y); else ctx.lineTo(i*slice,y);
+      if (screenFlash>0) {
+        ctx.fillStyle='rgba(61,255,154,'+(screenFlash*0.25)+')';
+        ctx.fillRect(0,0,w,h);
+        screenFlash*=0.85;
+        if(screenFlash<0.02) screenFlash=0;
       }
-      ctx.stroke();
-      // level
-      let sum=0;
-      for(let i=0;i<data.length;i++) sum+=Math.abs(data[i]-128);
+      // Prefer pad waveform when a pad was hit (pocket sampler style)
+      const showPadWave = lastPadWave && lastPadWave.buffer && (vizMode===0 || vizMode===3);
+      if (showPadWave && vizMode!==1 && vizMode!==2) {
+        const buf = lastPadWave.buffer;
+        const ch = buf.getChannelData(0);
+        const st = Math.floor((lastPadWave.start||0) * ch.length);
+        const en = Math.floor((lastPadWave.end||1) * ch.length);
+        const seg = Math.max(1, en - st);
+        ctx.strokeStyle='#3dff9a';
+        ctx.lineWidth=1.4;
+        ctx.beginPath();
+        const step = Math.max(1, Math.floor(seg / w));
+        for (let x=0; x<w; x++) {
+          const i0 = st + Math.floor(x / w * seg);
+          let min=1, max=-1;
+          for (let j=0; j<step && i0+j<en; j++) {
+            const v = ch[i0+j] || 0;
+            if (v<min) min=v; if (v>max) max=v;
+          }
+          const y1 = (1 - max) * 0.5 * h;
+          const y2 = (1 - min) * 0.5 * h;
+          ctx.moveTo(x, y1);
+          ctx.lineTo(x, y2);
+        }
+        ctx.stroke();
+        // playhead pulse
+        const t = (performance.now()/400) % 1;
+        ctx.fillStyle='rgba(232,90,42,0.85)';
+        ctx.fillRect(t * w, 0, 2, h);
+      } else if (vizMode===1) {
+        const bars=24, bw=w/bars;
+        for(let i=0;i<bars;i++){
+          const v=freq[i*2]/255;
+          const bh=v*h;
+          ctx.fillStyle='rgba(61,255,154,'+(0.4+v*0.6)+')';
+          ctx.fillRect(i*bw+1, h-bh, bw-2, bh);
+        }
+      } else if (vizMode===2) {
+        let sum=0; for(let i=0;i<data.length;i++) sum+=Math.abs(data[i]-128);
+        const v=Math.min(1,sum/data.length/40);
+        const r=6+v*12;
+        ctx.strokeStyle='rgba(61,255,154,'+(0.5+v*0.5)+')';
+        ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(w/2,h/2,r,0,Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(w/2,h/2,r*0.55,0,Math.PI*2); ctx.stroke();
+      } else {
+        ctx.strokeStyle='#3dff9a'; ctx.lineWidth=1.5; ctx.beginPath();
+        const slice=w/data.length;
+        for(let i=0;i<data.length;i++){
+          const y=(data[i]/128.0)*(h/2);
+          if(i===0) ctx.moveTo(0,y); else ctx.lineTo(i*slice,y);
+        }
+        ctx.stroke();
+      }
+      let sum=0; for(let i=0;i<data.length;i++) sum+=Math.abs(data[i]-128);
       const lvl=Math.min(100,(sum/data.length)*3);
       document.getElementById('levelFill').style.height=lvl+'%';
     }
     draw();
   }
+  // screen tap interaction
+  document.getElementById('screen')?.addEventListener('click', ()=>{
+    vizMode = (vizMode+1)%3;
+    screenFlash = 1;
+    const names=['PAD WAVE','BARS','PULSE'];
+    setScreen(names[vizMode], 'KEY '+NOTE_NAMES[globalKey]);
+  });
 
   function playPad(index) {
     if(!audioCtx) initAudio();
@@ -679,7 +770,7 @@
     if(mode.reverse){
       // simple reverse via playbackRate negative not widely supported; skip for now or use offline
     }
-    source.playbackRate.value=Math.pow(2, mode.pitch/12);
+    source.playbackRate.value=Math.pow(2, (mode.pitch + globalKey)/12);
 
     // basic start/end (chop)
     const dur=buffer.duration;
@@ -697,7 +788,9 @@
     activeSources.set(index, source);
     source.onended=()=>{ if(activeSources.get(index)===source) activeSources.delete(index); if(!latchedPads.has(index)) updatePadVisual(index,false); };
     updatePadVisual(index,true);
-    setScreen('PAD '+(index+1), (mode.loop?'LOOP ':'')+len.toFixed(2)+'s');
+    lastPadWave = { buffer, start: mode.start, end: mode.end, index };
+    const note = NOTE_NAMES[((mode.pitch + globalKey)%12+12)%12];
+    setScreen('PAD '+(index+1)+'  '+note, (mode.loop?'LOOP ':'')+len.toFixed(2)+'s');
   }
 
   function stopPad(index) {
@@ -736,14 +829,25 @@
 
   async function loadSample(file, padIndex) {
     if(!audioCtx) initAudio();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
     try {
-      const buf=await audioCtx.decodeAudioData(await file.arrayBuffer());
+      const ab = await file.arrayBuffer();
+      let buf;
+      try {
+        buf = await audioCtx.decodeAudioData(ab.slice(0));
+      } catch(e1) {
+        // fallback copy
+        buf = await audioCtx.decodeAudioData(ab);
+      }
       samples[padIndex]=buf;
       padModes[padIndex]={loop:false,reverse:false,gate:true,start:0,end:1,pitch:0};
       document.querySelector('.pad[data-index="'+padIndex+'"]')?.classList.add('has-sample');
-      setScreen('LOADED '+(padIndex+1), file.name.slice(0,14));
-      showToast('PAD '+(padIndex+1)+' ← '+file.name.slice(0,16));
-    } catch(e){ showToast('Ошибка файла'); }
+      setScreen('LOADED '+(padIndex+1), (file.name||'audio').slice(0,14));
+      showToast('PAD '+(padIndex+1)+' ← '+(file.name||'ok').slice(0,16));
+    } catch(e){
+      console.error(e);
+      showToast('Формат не поддерживается. Попробуй mp3/wav');
+    }
   }
   function loadFiles(files) {
     let start=samples.findIndex(s=>s===null); if(start===-1) start=0;
@@ -932,12 +1036,31 @@
     if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
     const m=padModes[selectedPad];
     m.pitch=(m.pitch+1)%13-6; // -6 to +6
-    setScreen('PITCH', (m.pitch>0?'+':'')+m.pitch+' st');
-    showToast('Pitch: '+(m.pitch>0?'+':'')+m.pitch);
+    const note = NOTE_NAMES[((m.pitch + globalKey)%12+12)%12];
+    setScreen('PITCH '+(m.pitch>0?'+':'')+m.pitch, note);
+    showToast('Pitch: '+(m.pitch>0?'+':'')+m.pitch+' ('+note+')');
+  };
+  document.getElementById('btnKey').onclick=()=>{
+    globalKey = (globalKey + 1) % 12;
+    const note = NOTE_NAMES[globalKey];
+    setScreen('KEY '+note, 'Тональность +'+globalKey+' st');
+    showToast('Тональность: '+note);
+    document.getElementById('btnKey').classList.add('active');
+    setTimeout(()=>document.getElementById('btnKey').classList.remove('active'), 200);
+  };
+  document.getElementById('btnKey').oncontextmenu=(e)=>{
+    e.preventDefault();
+    globalKey = (globalKey + 11) % 12;
+    setScreen('KEY '+NOTE_NAMES[globalKey], 'Тональность +'+globalKey+' st');
+    showToast('Тональность: '+NOTE_NAMES[globalKey]);
   };
 
   // events
-  document.getElementById('btnLoad').onclick=()=>document.getElementById('fileInput').click();
+  document.getElementById('btnLoad').onclick=async ()=>{
+    if(!audioCtx) initAudio();
+    try { if(audioCtx.state==='suspended') await audioCtx.resume(); } catch(e){}
+    document.getElementById('fileInput').click();
+  };
   document.getElementById('fileInput').onchange=e=>{ if(e.target.files.length) loadFiles(e.target.files); };
   document.getElementById('btnRec').onclick=toggleRecord;
   document.getElementById('btnHold').onclick=function(){ holdMode=!holdMode; this.classList.toggle('active',holdMode); setScreen(holdMode?'HOLD ON':'HOLD OFF'); };
@@ -961,8 +1084,73 @@
     };
   });
 
-  document.getElementById('btnTheme').onclick=()=>{ theme=theme==='dark'?'light':'dark'; document.body.classList.toggle('light',theme==='light'); localStorage.setItem('sp404_theme',theme); };
-  document.getElementById('btnSave').onclick=()=>{ localStorage.setItem('sp404_project',JSON.stringify({bpm,sequence,params,theme,isPro,padModes})); showToast('Сохранено'); };
+  document.getElementById('btnHelp').onclick=()=>document.getElementById('helpModal').classList.add('show');
+  document.getElementById('closeHelp').onclick=()=>document.getElementById('helpModal').classList.remove('show');
+  document.getElementById('btnSave').onclick=async ()=>{
+    try {
+      localStorage.setItem('sp404_project',JSON.stringify({bpm,sequence,params,theme,isPro,padModes}));
+      if(!audioCtx) initAudio();
+      // Simple bounce: first non-empty sample or short mix of up to 4 pads
+      const list=[];
+      for(let i=0;i<16;i++) if(samples[i]) list.push({i, buf:samples[i], m:padModes[i]});
+      if(!list.length){ showToast('Нет семплов для экспорта'); return; }
+      showToast('Экспорт WAV...');
+      const rate=audioCtx.sampleRate;
+      let maxLen=0;
+      list.slice(0,6).forEach(o=>{
+        const st=o.m.start||0, en=o.m.end||1;
+        maxLen=Math.max(maxLen, Math.floor(o.buf.duration*(en-st)*rate));
+      });
+      maxLen=Math.min(maxLen, rate*30); // max 30s
+      const offline=new OfflineAudioContext(2, Math.max(rate, maxLen), rate);
+      list.slice(0,6).forEach((o,idx)=>{
+        const src=offline.createBufferSource();
+        src.buffer=o.buf;
+        src.loop=!!o.m.loop;
+        const g=offline.createGain(); g.gain.value=0.7;
+        src.connect(g); g.connect(offline.destination);
+        const st=(o.m.start||0)*o.buf.duration;
+        const en=(o.m.end||1)*o.buf.duration;
+        const dur=Math.max(0.05, en-st);
+        try { src.start(0, st, o.m.loop ? Math.min(dur*4, 8) : dur); } catch(e){ src.start(0); }
+      });
+      const rendered=await offline.startRendering();
+      // encode WAV
+      const ch0=rendered.getChannelData(0);
+      const ch1=rendered.numberOfChannels>1?rendered.getChannelData(1):ch0;
+      const len=rendered.length;
+      const ab=new ArrayBuffer(44+len*2*2);
+      const v=new DataView(ab);
+      const ws=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+      ws(0,'RIFF'); v.setUint32(4,36+len*4,true); ws(8,'WAVE'); ws(12,'fmt ');
+      v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,2,true);
+      v.setUint32(24,rate,true); v.setUint32(28,rate*4,true); v.setUint16(32,4,true); v.setUint16(34,16,true);
+      ws(36,'data'); v.setUint32(40,len*4,true);
+      let off=44;
+      for(let i=0;i<len;i++){
+        let l=Math.max(-1,Math.min(1,ch0[i])); let r=Math.max(-1,Math.min(1,ch1[i]));
+        v.setInt16(off,l<0?l*0x8000:l*0x7FFF,true); off+=2;
+        v.setInt16(off,r<0?r*0x8000:r*0x7FFF,true); off+=2;
+      }
+      const blob=new Blob([ab],{type:'audio/wav'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='sp404-export-'+Date.now()+'.wav';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2000);
+      // Telegram: уведомить бота (чтобы бот мог ответить файлом — нужен бэкенд)
+      try {
+        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+          Telegram.WebApp.sendData(JSON.stringify({action:'export', pads:list.length, t:Date.now()}));
+        }
+      } catch(e){}
+      showToast('WAV скачан. Бот: нужен сервер для mp3');
+      setScreen('EXPORT', 'WAV ready');
+    } catch(e) {
+      console.error(e);
+      showToast('Ошибка экспорта');
+    }
+  };
 
   // stickers
   function renderStickerGrid(){
