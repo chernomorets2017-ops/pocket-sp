@@ -39,7 +39,7 @@
       linear-gradient(160deg, #32353c 0%, #25282e 40%, #1c1f24 100%);
     display: flex; flex-direction: column;
     padding: 8px 10px 10px;
-    padding-top: max(12px, env(safe-area-inset-top), var(--tg-safe-top, 54px));
+    padding-top: max(10px, env(safe-area-inset-top), var(--tg-safe-top, 52px));
     position: relative;
     overflow: hidden;
     box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
@@ -539,16 +539,15 @@
     try {
       tg.setHeaderColor('#1c1f24');
       tg.setBackgroundColor('#0a0c10');
-      // Убираем наезд шапки Telegram на интерфейс
       const topInset = (tg.safeAreaInset && tg.safeAreaInset.top) ||
-                       (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) || 54;
-      document.documentElement.style.setProperty('--tg-safe-top', (topInset + 8) + 'px');
-      if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+                       (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) || 52;
+      document.documentElement.style.setProperty('--tg-safe-top', (topInset + 6) + 'px');
+      if (tg.disableVerticalSwipes) try { tg.disableVerticalSwipes(); } catch(e) {}
     } catch(e) {
-      document.documentElement.style.setProperty('--tg-safe-top', '58px');
+      document.documentElement.style.setProperty('--tg-safe-top', '56px');
     }
   } else {
-    document.documentElement.style.setProperty('--tg-safe-top', '12px');
+    document.documentElement.style.setProperty('--tg-safe-top', '10px');
   }
 
   let audioCtx, masterGain, filterNode, delayNode, delayFeedback, delayWet, reverbNode, reverbWet, bitcrusherNode;
@@ -558,6 +557,7 @@
   let currentFx = 'filter', holdMode = false, isRecording = false, mediaRecorder, recordedChunks = [];
   let seqPlaying = false, seqInterval, currentStep = 0, bpm = 120, selectedPad = 0;
   let theme = localStorage.getItem('sp404_theme') || 'dark';
+  let chopEdit = false;
 
   // per-pad modes
   const padModes = Array.from({length:16}, () => ({ loop: false, reverse: false, gate: true, start: 0, end: 1, pitch: 0 }));
@@ -838,7 +838,7 @@
           else if(param==='delay'){
             if (chopEdit) {
               const m = padModes[selectedPad];
-              m.start = Math.max(0, Math.min(0.95, (typeof startVal==='number'&&startVal<=1?startVal:m.start) + d*0.6));
+              m.start = Math.max(0, Math.min(0.95, startVal + d*0.6));
               if (m.start >= m.end) m.end = Math.min(1, m.start + 0.05);
               document.getElementById('valDelay').textContent = (m.start*100).toFixed(0)+'%';
               setScreen('TRIM '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
@@ -849,7 +849,7 @@
           else {
             if (chopEdit) {
               const m = padModes[selectedPad];
-              m.end = Math.max(0.05, Math.min(1, (typeof startVal==='number'&&startVal<=1?startVal:m.end) + d*0.6));
+              m.end = Math.max(0.05, Math.min(1, startVal + d*0.6));
               if (m.end <= m.start) m.start = Math.max(0, m.end - 0.05);
               document.getElementById('valLofi').textContent = (m.end*100).toFixed(0)+'%';
               setScreen('TRIM '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
@@ -858,12 +858,9 @@
             }
           }
           let norm;
-          if (chopEdit && (param==='delay'||param==='lofi')) {
-            const m = padModes[selectedPad];
-            norm = param==='delay' ? m.start : m.end;
-          } else {
-            norm=param==='cutoff'?(params.cutoff-180)/13820:param==='reso'?params.reso/18:param==='delay'?params.delay/0.9:params.lofi;
-          }
+          if (chopEdit && param==='delay') norm = padModes[selectedPad].start;
+          else if (chopEdit && param==='lofi') norm = padModes[selectedPad].end;
+          else norm=param==='cutoff'?(params.cutoff-180)/13820:param==='reso'?params.reso/18:param==='delay'?params.delay/0.9:params.lofi;
           knob.style.transform='rotate('+(norm*270-135)+'deg)';
           if (!chopEdit) updateParams();
         };
@@ -915,21 +912,25 @@
     updateModeButtons();
     setScreen('PAD '+(selectedPad+1), padModes[selectedPad].gate?'GATE ON':'GATE OFF');
   };
-  let chopEdit = false; // when true, TIME knob = start, LO-FI knob = end
   document.getElementById('btnChop').onclick=()=>{
     if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
     chopEdit = !chopEdit;
     document.getElementById('btnChop').classList.toggle('active', chopEdit);
+    const startLabel = document.querySelector('#knobDelay')?.parentElement?.querySelector('.knob-label');
+    const endLabel = document.querySelector('#knobLofi')?.parentElement?.querySelector('.knob-label');
     if (chopEdit) {
       const m = padModes[selectedPad];
+      if (startLabel) startLabel.textContent = 'START';
+      if (endLabel) endLabel.textContent = 'END';
+      document.getElementById('valDelay').textContent = (m.start*100).toFixed(0)+'%';
+      document.getElementById('valLofi').textContent = (m.end*100).toFixed(0)+'%';
       setScreen('TRIM PAD '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
-      showToast('TRIM: крути TIME=старт, LO-FI=конец');
-      document.getElementById('valDelay').previousElementSibling?.classList;
-      document.querySelector('#knobDelay')?.parentElement.querySelector('.knob-label').textContent = 'START';
-      document.querySelector('#knobLofi')?.parentElement.querySelector('.knob-label').textContent = 'END';
+      showToast('TRIM: TIME=начало, LO-FI=конец');
     } else {
-      document.querySelector('#knobDelay')?.parentElement.querySelector('.knob-label').textContent = 'TIME';
-      document.querySelector('#knobLofi')?.parentElement.querySelector('.knob-label').textContent = 'LO-FI';
+      if (startLabel) startLabel.textContent = 'TIME';
+      if (endLabel) endLabel.textContent = 'LO-FI';
+      document.getElementById('valDelay').textContent = params.delay.toFixed(2);
+      document.getElementById('valLofi').textContent = params.lofi.toFixed(2);
       setScreen('PAD '+(selectedPad+1), 'Trim off');
     }
   };
