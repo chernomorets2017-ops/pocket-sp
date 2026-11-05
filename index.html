@@ -396,7 +396,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
     cursor: pointer;
     position: relative;
-    transition: transform 0.08s ease, background 0.1s, border-color 0.1s, box-shadow 0.1s;
+    transition: transform 0.05s ease-out, background 0.08s, border-color 0.08s, box-shadow 0.08s;
     overflow: hidden;
     touch-action: none;
   }
@@ -855,6 +855,81 @@
   .screen-main {
     transition: opacity 0.15s ease;
   }
+
+  /* --- Skins / customization --- */
+  .device[data-texture="matte"] {
+    background: linear-gradient(180deg, #16181f 0%, #101218 55%, #0c0d12 100%);
+  }
+  .device[data-texture="metal"] {
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 3px),
+      linear-gradient(160deg, #2a2e38 0%, #1a1d24 40%, #12141a 100%);
+  }
+  .device[data-texture="rubber"] {
+    background: radial-gradient(ellipse at 50% 0%, #1c1f28, #0e1016 70%);
+  }
+  .device[data-texture="carbon"] {
+    background:
+      repeating-linear-gradient(45deg, #14161c 0px, #14161c 3px, #101218 3px, #101218 6px),
+      linear-gradient(180deg, #181b22, #0c0d12);
+  }
+  .skin-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 10px 0 14px;
+  }
+  .skin-swatch {
+    height: 40px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+  }
+  .skin-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+  }
+  .skin-swatch span {
+    position: absolute;
+    bottom: 4px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 1px 2px #000;
+  }
+  .tex-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tex-btn {
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tex-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 8px 0 6px;
+    text-align: left;
+  }
   @supports (padding: max(0px)) {
     .device { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   }
@@ -943,6 +1018,7 @@
   <div class="stats-bar">
     <div class="util-left">
       <button class="util-btn" id="btnHelp" title="Справка">❓</button>
+      <button class="util-btn" id="btnSkin" title="Стиль">🎨</button>
       <button class="util-btn" id="btnSave" title="Сохранить">💾</button>
       <button class="util-btn pro-util" id="btnProBottom">PRO</button>
     </div>
@@ -954,7 +1030,7 @@
 <div class="modal" id="proModal">
   <div class="modal-content">
     <h2>🚀 SP-404 WEB PRO</h2>
-    <p>VINYL · CHOP · PITCH<br>Все эффекты + приоритетные обновления<br><br>Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
+    <p>VINYL · CHOP · PITCH · СТИЛЬ<br>Цвет, текстура корпуса + все эффекты<br><br>Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
     <div class="price">990 ₽</div>
     <button class="buy-btn" id="buyBtn">Оплатить через ЮKassa</button>
     <div style="margin:12px 0 6px;font-size:11px;color:var(--text-dim);">Ключ после оплаты:</div>
@@ -989,6 +1065,20 @@
       <p style="margin-top:8px;">Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
     </div>
     <button class="close-modal" id="closeHelp" style="display:block;width:100%;margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
+
+<div class="modal" id="skinModal">
+  <div class="modal-content" style="max-width:340px;">
+    <h2>🎨 Кастомизация</h2>
+    <p style="margin-bottom:6px;">Цвет акцента и текстура корпуса · PRO</p>
+    <div class="section-label">Цвет</div>
+    <div class="skin-grid" id="colorGrid"></div>
+    <div class="section-label">Текстура</div>
+    <div class="tex-row" id="texRow"></div>
+    <button class="buy-btn" id="applySkinBtn" style="margin-top:4px;">Готово</button>
+    <button class="close-modal" id="closeSkin">Закрыть</button>
   </div>
 </div>
 
@@ -1294,66 +1384,139 @@
     } catch(e) {}
   }
   function playPad(index) {
-    if(!audioCtx) initAudio();
-    if(audioCtx.state==='suspended') audioCtx.resume();
-    selectedPad=index; updateSeqPadLabel(); highlightSelectedPad(); updateModeButtons();
-    const buffer=samples[index];
-    if(!buffer) {
+    if (!audioCtx) initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    selectedPad = index;
+    updateSeqPadLabel();
+    highlightSelectedPad();
+    updateModeButtons();
+    const buffer = samples[index];
+    if (!buffer) {
       haptic('light');
-      setScreen('PAD '+(index+1), 'Пусто · нажми LOAD');
+      setScreen('PAD ' + (index + 1), 'Пусто · нажми LOAD');
       return;
     }
     haptic('light');
-    if(latchedPads.has(index) && activeSources.has(index)) return;
-    if(!holdMode && !latchedPads.has(index) && activeSources.has(index)){
-      try{activeSources.get(index).stop();}catch(e){} activeSources.delete(index);
+
+    // latched & already playing → keep going (live feel)
+    if (latchedPads.has(index) && activeSources.has(index)) return;
+
+    // retrigger: soft-stop previous voice on this pad
+    if (activeSources.has(index)) {
+      softStop(index);
     }
 
-    const mode=padModes[index];
-    const source=audioCtx.createBufferSource();
-    source.buffer=buffer;
-    source.loop=mode.loop;
-    if(mode.reverse){
-      // simple reverse via playbackRate negative not widely supported; skip for now or use offline
+    const mode = padModes[index];
+    const dur = buffer.duration;
+    const start = Math.max(0, (mode.start || 0) * dur);
+    const end = Math.min(dur, (mode.end == null ? 1 : mode.end) * dur);
+    const len = Math.max(0.01, end - start);
+    const now = audioCtx.currentTime;
+
+    const source = audioCtx.createBufferSource();
+    const gainNode = audioCtx.createGain();
+    // tiny attack to avoid clicks — feels like real hardware
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.exponentialRampToValueAtTime(1, now + 0.004);
+
+    let playBuffer = buffer;
+    let playStart = start;
+    let playLen = len;
+    let loopStart = start;
+    let loopEnd = end;
+
+    if (mode.reverse) {
+      try {
+        const chCount = buffer.numberOfChannels;
+        const frameCount = Math.max(1, Math.floor(len * buffer.sampleRate));
+        const rev = audioCtx.createBuffer(chCount, frameCount, buffer.sampleRate);
+        const offset = Math.floor(start * buffer.sampleRate);
+        for (let c = 0; c < chCount; c++) {
+          const src = buffer.getChannelData(c);
+          const dst = rev.getChannelData(c);
+          for (let i = 0; i < frameCount; i++) {
+            dst[i] = src[Math.min(src.length - 1, offset + frameCount - 1 - i)] || 0;
+          }
+        }
+        playBuffer = rev;
+        playStart = 0;
+        playLen = rev.duration;
+        loopStart = 0;
+        loopEnd = rev.duration;
+      } catch (e) { console.error(e); }
     }
-    source.playbackRate.value=Math.pow(2, (mode.pitch + globalKey)/12);
 
-    // basic start/end (chop)
-    const dur=buffer.duration;
-    const start=mode.start*dur;
-    const end=mode.end*dur;
-    const len=Math.max(0.01, end-start);
+    source.buffer = playBuffer;
+    source.playbackRate.value = Math.pow(2, ((mode.pitch || 0) + globalKey) / 12);
+    source.loop = !!mode.loop;
+    if (mode.loop) {
+      source.loopStart = loopStart;
+      source.loopEnd = loopEnd;
+    }
 
-    const gainNode=audioCtx.createGain();
-    gainNode.gain.value=1;
-    source.connect(gainNode); gainNode.connect(filterNode);
+    source.connect(gainNode);
+    gainNode.connect(filterNode);
 
-    if(mode.loop) source.start(0, start);
-    else source.start(0, start, len);
+    try {
+      if (mode.loop) source.start(0, playStart);
+      else source.start(0, playStart, playLen);
+    } catch (e) {
+      try { source.start(0); } catch (e2) {}
+    }
 
-    activeSources.set(index, source);
-    source.onended=()=>{ if(activeSources.get(index)===source) activeSources.delete(index); if(!latchedPads.has(index)) updatePadVisual(index,false); };
-    updatePadVisual(index,true);
-    lastPadWave = { buffer, start: mode.start, end: mode.end, index };
-    const note = NOTE_NAMES[((mode.pitch + globalKey)%12+12)%12];
-    setScreen('PAD '+(index+1)+'  '+note, (mode.loop?'LOOP ':'')+len.toFixed(2)+'s');
+    activeSources.set(index, { source, gain: gainNode });
+    source.onended = () => {
+      const cur = activeSources.get(index);
+      if (cur && cur.source === source) activeSources.delete(index);
+      if (!latchedPads.has(index)) updatePadVisual(index, false);
+    };
+
+    updatePadVisual(index, true);
+    lastPadWave = { buffer, start: mode.start || 0, end: mode.end == null ? 1 : mode.end, index };
+    const note = NOTE_NAMES[(((mode.pitch || 0) + globalKey) % 12 + 12) % 12];
+    setScreen('PAD ' + (index + 1) + '  ' + note, (mode.loop ? 'LOOP ' : '') + (mode.gate ? 'GATE ' : '') + len.toFixed(2) + 's');
+  }
+
+  function softStop(index) {
+    const voice = activeSources.get(index);
+    if (!voice) return;
+    try {
+      const g = voice.gain;
+      const s = voice.source;
+      const t = audioCtx.currentTime;
+      g.gain.cancelScheduledValues(t);
+      g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+      s.stop(t + 0.035);
+    } catch (e) {
+      try { voice.source.stop(); } catch (e2) {}
+    }
+    activeSources.delete(index);
   }
 
   function stopPad(index) {
-    if(latchedPads.has(index)) return;
-    if(activeSources.has(index)){ try{activeSources.get(index).stop();}catch(e){} activeSources.delete(index); updatePadVisual(index,false); }
+    if (latchedPads.has(index)) return;
+    softStop(index);
+    updatePadVisual(index, false);
   }
+
   function toggleLatch(index) {
-    if(latchedPads.has(index)){
-      latchedPads.delete(index); stopPad(index);
-      document.querySelector('.pad[data-index="'+index+'"]')?.classList.remove('latched');
-      setScreen('PAD '+(index+1),'Unlatched');
+    if (latchedPads.has(index)) {
+      latchedPads.delete(index);
+      softStop(index);
+      document.querySelector('.pad[data-index="' + index + '"]')?.classList.remove('latched');
+      updatePadVisual(index, false);
+      setScreen('PAD ' + (index + 1), 'Unlatched');
     } else {
-      latchedPads.add(index); playPad(index);
-      document.querySelector('.pad[data-index="'+index+'"]')?.classList.add('latched');
-      setScreen('PAD '+(index+1),'LATCHED'); showToast('PAD '+(index+1)+' зажат'); haptic('medium');
+      latchedPads.add(index);
+      if (!activeSources.has(index)) playPad(index);
+      document.querySelector('.pad[data-index="' + index + '"]')?.classList.add('latched');
+      setScreen('PAD ' + (index + 1), 'LATCHED');
+      showToast('PAD ' + (index + 1) + ' зажат');
+      haptic('medium');
     }
   }
+
   function updatePadVisual(index, playing) {
     const el=document.querySelector('.pad[data-index="'+index+'"]');
     if(el) el.classList.toggle('playing', playing||latchedPads.has(index));
@@ -1540,7 +1703,11 @@
       let startY=0, isDown=false;
       const onStart=e=>{ e.preventDefault(); isDown=true; startY=e.touches?e.touches[0].clientY:e.clientY; playPad(i); };
       const onMove=e=>{ if(!isDown) return; const y=e.touches?e.touches[0].clientY:e.clientY; if(y-startY>36){ isDown=false; toggleLatch(i); } };
-      const onEnd=()=>{ if(!isDown) return; isDown=false; if(!holdMode&&!latchedPads.has(i)) stopPad(i); };
+      const onEnd=()=>{ if(!isDown) return; isDown=false; if(latchedPads.has(i)) return;
+        // GATE on → stop when finger up (live). GATE off → one-shot plays out.
+        const g = padModes[i]?.gate;
+        if (g !== false) stopPad(i);
+      };
       pad.addEventListener('mousedown',onStart); pad.addEventListener('touchstart',onStart,{passive:false});
       pad.addEventListener('mousemove',onMove); pad.addEventListener('touchmove',onMove,{passive:false});
       pad.addEventListener('mouseup',onEnd); pad.addEventListener('mouseleave',onEnd); pad.addEventListener('touchend',onEnd);
@@ -1817,6 +1984,89 @@
   }
 
   
+
+  // --- Customization (PRO) ---
+  const SKIN_COLORS = [
+    { id: 'orange', name: 'Orange', accent: '#ff6b35', dim: 'rgba(255,107,53,0.15)', glow: 'rgba(255,107,53,0.35)' },
+    { id: 'blue', name: 'Blue', accent: '#3b82f6', dim: 'rgba(59,130,246,0.15)', glow: 'rgba(59,130,246,0.35)' },
+    { id: 'violet', name: 'Violet', accent: '#a855f7', dim: 'rgba(168,85,247,0.15)', glow: 'rgba(168,85,247,0.35)' },
+    { id: 'mint', name: 'Mint', accent: '#2ee6a6', dim: 'rgba(46,230,166,0.15)', glow: 'rgba(46,230,166,0.35)' },
+    { id: 'red', name: 'Red', accent: '#ef4444', dim: 'rgba(239,68,68,0.15)', glow: 'rgba(239,68,68,0.35)' },
+    { id: 'silver', name: 'Silver', accent: '#c0c4ce', dim: 'rgba(192,196,206,0.15)', glow: 'rgba(192,196,206,0.25)' }
+  ];
+  const SKIN_TEXTURES = [
+    { id: 'matte', name: 'Matte' },
+    { id: 'metal', name: 'Metal' },
+    { id: 'rubber', name: 'Rubber' },
+    { id: 'carbon', name: 'Carbon' }
+  ];
+  let skinColor = localStorage.getItem('sp404_skin_color') || 'orange';
+  let skinTex = localStorage.getItem('sp404_skin_tex') || 'matte';
+
+  function applySkin(colorId, texId, save) {
+    const c = SKIN_COLORS.find(x => x.id === colorId) || SKIN_COLORS[0];
+    const t = SKIN_TEXTURES.find(x => x.id === texId) || SKIN_TEXTURES[0];
+    skinColor = c.id;
+    skinTex = t.id;
+    const root = document.documentElement;
+    root.style.setProperty('--accent', c.accent);
+    root.style.setProperty('--accent-dim', c.dim);
+    root.style.setProperty('--accent-glow', c.glow);
+    const device = document.getElementById('device');
+    if (device) device.setAttribute('data-texture', t.id);
+    if (save) {
+      localStorage.setItem('sp404_skin_color', skinColor);
+      localStorage.setItem('sp404_skin_tex', skinTex);
+    }
+    // refresh swatch active states
+    document.querySelectorAll('.skin-swatch').forEach(el => el.classList.toggle('active', el.dataset.id === skinColor));
+    document.querySelectorAll('.tex-btn').forEach(el => el.classList.toggle('active', el.dataset.id === skinTex));
+  }
+
+  function openSkinModal() {
+    if (!isPro) {
+      document.getElementById('proModal').classList.add('show');
+      showToast('Кастомизация в PRO');
+      return;
+    }
+    const cg = document.getElementById('colorGrid');
+    const tr = document.getElementById('texRow');
+    if (cg && !cg.children.length) {
+      SKIN_COLORS.forEach(c => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'skin-swatch' + (c.id === skinColor ? ' active' : '');
+        el.dataset.id = c.id;
+        el.style.background = 'linear-gradient(145deg,' + c.accent + ',' + c.accent + '99)';
+        el.innerHTML = '<span>' + c.name + '</span>';
+        el.onclick = () => applySkin(c.id, skinTex, false);
+        cg.appendChild(el);
+      });
+    }
+    if (tr && !tr.children.length) {
+      SKIN_TEXTURES.forEach(t => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'tex-btn' + (t.id === skinTex ? ' active' : '');
+        el.dataset.id = t.id;
+        el.textContent = t.name;
+        el.onclick = () => applySkin(skinColor, t.id, false);
+        tr.appendChild(el);
+      });
+    }
+    applySkin(skinColor, skinTex, false);
+    document.getElementById('skinModal').classList.add('show');
+  }
+
+  document.getElementById('btnSkin')?.addEventListener('click', openSkinModal);
+  document.getElementById('closeSkin')?.addEventListener('click', () => document.getElementById('skinModal').classList.remove('show'));
+  document.getElementById('applySkinBtn')?.addEventListener('click', () => {
+    applySkin(skinColor, skinTex, true);
+    document.getElementById('skinModal').classList.remove('show');
+    showToast('Стиль сохранён');
+    haptic('success');
+  });
+
   function unlockPro(show=true){
     isPro=true; localStorage.setItem('sp404_pro','1');
     document.getElementById('proBadge').textContent='PRO'; document.getElementById('proBadge').classList.add('unlocked');
@@ -1826,6 +2076,7 @@
     document.getElementById('btnPitch').classList.remove('pro-lock');
     document.getElementById('proModal').classList.remove('show');
     if(show){ showToast('Pro активирован!'); setScreen('PRO','Unlocked'); haptic('success'); }
+    applySkin(localStorage.getItem('sp404_skin_color')||'orange', localStorage.getItem('sp404_skin_tex')||'matte', false);
   }
   document.getElementById('proBadge').onclick=()=>{ if(isPro){showToast('Уже Pro');return;} document.getElementById('proModal').classList.add('show'); };
   const btnProBottom=document.getElementById('btnProBottom');
@@ -1849,6 +2100,9 @@
 
   // init
   if(isPro) unlockPro(false);
+  // restore skin (PRO only keeps custom; free always default orange/matte)
+  if (isPro) applySkin(skinColor, skinTex, false);
+  else applySkin('orange', 'matte', false);
   buildPads(); buildSeqSteps(); setupKnobs(); updateSeqPadLabel(); updateModeButtons();
   setScreen('READY','Load • Swipe ↓ latch');
   document.getElementById('knobCutoff').style.transform='rotate(70deg)';
