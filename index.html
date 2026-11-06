@@ -1014,6 +1014,53 @@
     .ctrl-btn { height:34px; }
   }
 
+
+  /* === mobile fit fix: keep all 16 pads inside the viewport === */
+  html, body { overflow: hidden; }
+  .device { min-height: 0; height: 100dvh; overflow: hidden; }
+  .top-bar { flex: 0 0 auto; padding-bottom: 10px; }
+  .screen-wrap { flex: 0 0 auto; margin-bottom: 9px; }
+  .screen { height: 104px; }
+  .controls-row { flex: 0 0 auto; padding: 7px 8px 5px; margin-bottom: 8px; }
+  .knob { width: 42px; height: 42px; }
+  .fx-row { flex: 0 0 auto; margin-bottom: 6px; }
+  .fx-btn { height: 31px; }
+  .mode-row { flex: 0 0 auto; margin-bottom: 7px; }
+  .mode-btn { height: 30px; }
+  .pads {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    gap: 6px;
+    margin: 0 0 8px;
+  }
+  .pad { min-height: 0; height: auto; }
+  .bottom-row { flex: 0 0 auto; margin-bottom: 6px; }
+  .ctrl-btn { height: 36px; }
+  .seq-section { flex: 0 0 auto; }
+  .sliders-row { flex: 0 0 auto; margin-bottom: 4px; }
+  .stats-bar { flex: 0 0 auto; }
+  @media (max-height: 760px) {
+    .top-bar { padding-bottom: 6px; }
+    .screen { height: 84px; }
+    .screen-main { font-size: 20px; }
+    .screen-sub { margin-top: 2px; }
+    .controls-row { padding-top: 4px; padding-bottom: 2px; margin-bottom: 5px; }
+    .knob { width: 34px; height: 34px; }
+    .knob::after { top: 5px; height: 10px; }
+    .knob-value { font-size: 9px; }
+    .fx-btn { height: 27px; }
+    .mode-btn { height: 27px; }
+    .pads { gap: 4px; margin-bottom: 5px; }
+    .ctrl-btn { height: 32px; }
+    .sliders-row { padding-top: 0; padding-bottom: 2px; }
+    .stats-bar { padding-top: 4px; padding-bottom: 4px; }
+    .util-btn { height: 28px; }
+  }
+
 </style>
 </head>
 <body>
