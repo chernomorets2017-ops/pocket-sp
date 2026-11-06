@@ -933,6 +933,87 @@
   @supports (padding: max(0px)) {
     .device { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   }
+
+  /* === sampler redesign === */
+  :root {
+    --bg: #07090d;
+    --surface: #11151c;
+    --surface-2: #171c25;
+    --surface-3: #202733;
+    --border: rgba(255,255,255,.09);
+    --border-strong: rgba(255,255,255,.15);
+    --text: #f3f5f7;
+    --text-2: #9ea8b8;
+    --text-3: #697386;
+    --accent: #ff6438;
+    --accent-dim: rgba(255,100,56,.14);
+    --accent-glow: rgba(255,100,56,.38);
+    --green: #8dffbd;
+    --green-dim: rgba(141,255,189,.12);
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+  body { background: #050608; }
+  .device {
+    max-width: 480px;
+    padding: 12px 14px 14px;
+    padding-top: max(12px, env(safe-area-inset-top), var(--tg-safe-top, 52px));
+    background: radial-gradient(100% 30% at 50% 0%, rgba(255,100,56,.13), transparent 72%), linear-gradient(180deg,#11151c 0%,#0a0c11 100%);
+  }
+  .device::before { background: linear-gradient(180deg,rgba(255,255,255,.045),transparent 28%); }
+  .top-bar { padding: 0 2px 12px; }
+  .logo { color: #f3f5f7; font-size: 13px; letter-spacing: .14em; }
+  .logo span { color: var(--accent); }
+  .pro-badge { padding: 6px 10px; font-size: 9px; }
+  .top-bar::after { content: 'TELEGRAM MINI APP'; position:absolute; left:2px; top:20px; color:var(--text-3); font-size:8px; letter-spacing:.12em; font-weight:600; }
+  .screen-wrap { margin-bottom: 12px; }
+  .screen { height: 132px; padding: 13px 14px; border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(141,255,189,.12), inset 0 2px 14px rgba(0,0,0,.72), 0 10px 24px rgba(0,0,0,.22); }
+  .screen-top { font-size: 10px; margin-bottom: 8px; }
+  .screen-main { font-size: 25px; letter-spacing:.04em; }
+  .screen-sub { font-size: 10px; margin-top: 5px; }
+  .wave-canvas { bottom: 10px; left: 14px; right: 14px; height: 34px; }
+  .level-bar { right: 12px; top: 35px; bottom: 12px; }
+  .controls-row { gap: 8px; margin-bottom: 12px; padding: 10px 8px 8px; border:1px solid var(--border); border-radius:16px; background:rgba(17,21,28,.8); }
+  .knob-group { gap: 5px; }
+  .knob-label { font-size: 8px; color:var(--text-2); }
+  .knob { width:48px; height:48px; background:radial-gradient(circle at 32% 26%,#3b4350,#171c24 70%); }
+  .knob::after { height:13px; top:7px; }
+  .knob-value { color:var(--green); font-size:10px; }
+  .fx-row { gap:6px; margin-bottom:8px; }
+  .fx-btn,.mode-btn { height:34px; border-radius:10px; font-size:9px; }
+  .fx-btn { background:#151a22; }
+  .mode-row { gap:5px; margin-bottom:10px; }
+  .mode-btn { background:transparent; color:var(--text-3); }
+  .mode-btn.active { background:var(--green); color:#08110d; box-shadow:0 0 14px rgba(141,255,189,.22); }
+  .pads { gap:8px; margin:2px 0 12px; }
+  .pad { min-height:58px; border-radius:15px; background:linear-gradient(145deg,#1a2029,#12161d); border-color:rgba(255,255,255,.11); box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 5px 12px rgba(0,0,0,.18); }
+  .pad::before { background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 48%); }
+  .pad:active,.pad.playing { background:linear-gradient(145deg,#ff835c,var(--accent)); box-shadow:0 0 22px var(--accent-glow); }
+  .pad.selected { outline:2px solid var(--green); outline-offset:2px; }
+  .pad-number { bottom:7px; font-size:10px; color:rgba(255,255,255,.34); }
+  .pad.has-sample .pad-number { color:rgba(255,255,255,.74); }
+  .pad-led { top:8px; right:8px; width:6px; height:6px; }
+  .bottom-row { grid-template-columns:1.3fr 1fr 1.1fr 1fr 1fr; gap:6px; margin-bottom:9px; }
+  .ctrl-btn { height:40px; border-radius:11px; font-size:10px; background:#151a22; }
+  .ctrl-btn:first-child { background:var(--accent); color:#fff; border-color:transparent; box-shadow:0 5px 14px rgba(255,100,56,.22); }
+  .seq-section { padding:10px 0 6px; }
+  .sliders-row { gap:14px; padding:3px 4px 5px; }
+  .slider-group label { color:var(--text-2); }
+  input[type=range] { background:#2a323f; }
+  input[type=range]::-webkit-slider-thumb { background:var(--accent); width:16px; height:16px; }
+  .stats-bar { padding:7px 8px; border-radius:13px; background:#0f1319; }
+  .util-btn { height:32px; min-width:34px; background:#171c24; }
+  .channel-link { font-size:10px; padding:8px 10px; }
+  .onboard-tip { margin:-2px 0 10px; border-radius:12px; background:rgba(141,255,189,.07); border-color:rgba(141,255,189,.17); }
+  .onboard-tip b { color:var(--green); }
+  @media (max-height:700px) {
+    .screen { height:112px; }
+    .controls-row { padding-top:6px; padding-bottom:4px; margin-bottom:8px; }
+    .knob { width:40px; height:40px; }
+    .pad { min-height:44px; }
+    .ctrl-btn { height:34px; }
+  }
+
 </style>
 </head>
 <body>
@@ -941,7 +1022,7 @@
   <div class="drop-overlay" id="dropOverlay"><div style="font-size:32px">📂</div><p>Брось семплы сюда</p></div>
 
   <div class="top-bar">
-    <div class="logo">SP-<span>404</span> WEB</div>
+    <div class="logo">SP-<span>404</span> SAMPLER</div>
     <div class="top-actions">
       <div class="pro-badge" id="proBadge">FREE</div>
     </div>
@@ -959,7 +1040,7 @@
         <span id="screenBpm">120 BPM</span>
       </div>
       <div class="screen-main" id="screenMain">READY</div>
-      <div class="screen-sub" id="screenSub">Load • Swipe ↓ latch</div>
+      <div class="screen-sub" id="screenSub">Tap pad to play • swipe ↓ to latch</div>
       <canvas class="wave-canvas" id="waveCanvas"></canvas>
       <div class="level-bar"><div class="level-fill" id="levelFill"></div></div>
     </div>
@@ -994,7 +1075,7 @@
   <div class="bottom-row">
     <button class="ctrl-btn" id="btnLoad">LOAD</button>
     <button class="ctrl-btn rec" id="btnRec">REC</button>
-    <button class="ctrl-btn" id="btnResample">RESMP</button>
+    <button class="ctrl-btn" id="btnResample">RESAMPLE</button>
     <button class="ctrl-btn" id="btnSeq">SEQ</button>
     <button class="ctrl-btn" id="btnClear">CLEAR</button>
   </div>
@@ -1398,7 +1479,7 @@
     }
     haptic('light');
 
-    // latched & already playing → keep going (live feel)
+    // latched & already playing → keep going
     if (latchedPads.has(index) && activeSources.has(index)) return;
 
     // retrigger: soft-stop previous voice on this pad
@@ -1486,8 +1567,8 @@
       const t = audioCtx.currentTime;
       g.gain.cancelScheduledValues(t);
       g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-      s.stop(t + 0.035);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.012);
+      s.stop(t + 0.015);
     } catch (e) {
       try { voice.source.stop(); } catch (e2) {}
     }
@@ -1703,10 +1784,9 @@
       let startY=0, isDown=false;
       const onStart=e=>{ e.preventDefault(); isDown=true; startY=e.touches?e.touches[0].clientY:e.clientY; playPad(i); };
       const onMove=e=>{ if(!isDown) return; const y=e.touches?e.touches[0].clientY:e.clientY; if(y-startY>36){ isDown=false; toggleLatch(i); } };
-      const onEnd=()=>{ if(!isDown) return; isDown=false; if(latchedPads.has(i)) return;
-        // GATE on → stop when finger up (live). GATE off → one-shot plays out.
-        const g = padModes[i]?.gate;
-        if (g !== false) stopPad(i);
+      const onEnd=()=>{ if(!isDown) return; isDown=false;
+        // stop on release — sustain only via latch (swipe down) or keep holding
+        if (!latchedPads.has(i)) stopPad(i);
       };
       pad.addEventListener('mousedown',onStart); pad.addEventListener('touchstart',onStart,{passive:false});
       pad.addEventListener('mousemove',onMove); pad.addEventListener('touchmove',onMove,{passive:false});
@@ -2104,7 +2184,7 @@
   if (isPro) applySkin(skinColor, skinTex, false);
   else applySkin('orange', 'matte', false);
   buildPads(); buildSeqSteps(); setupKnobs(); updateSeqPadLabel(); updateModeButtons();
-  setScreen('READY','Load • Swipe ↓ latch');
+  setScreen('READY','Tap pad to play • swipe ↓ to latch');
   document.getElementById('knobCutoff').style.transform='rotate(70deg)';
   document.getElementById('knobReso').style.transform='rotate(-100deg)';
   document.getElementById('knobDelay').style.transform='rotate(-40deg)';
