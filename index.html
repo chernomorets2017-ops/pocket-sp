@@ -1166,6 +1166,93 @@
   .chain-slots { display:grid; grid-template-columns:repeat(8,1fr); gap:3px; flex:1; }
   .chain-slot { height:24px; border:1px solid var(--border); border-radius:5px; background:var(--surface-2); color:var(--text-2); font:700 9px var(--mono); cursor:pointer; }
   .chain-slot.active { background:var(--accent); border-color:transparent; color:#fff; }
+  .trim-panel { display:none; padding:9px 10px 8px; margin:-3px 0 8px; border:1px solid rgba(141,255,189,.2); border-radius:12px; background:rgba(4,12,9,.72); }
+  .trim-panel.open { display:block; }
+  .trim-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; color:var(--green); font:700 10px var(--mono); letter-spacing:.06em; }
+  .trim-head button { height:24px; padding:0 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface-2); color:var(--text-2); font-size:9px; font-weight:700; }
+  .trim-row { display:grid; grid-template-columns:40px 1fr 38px; align-items:center; gap:7px; margin:6px 0; }
+  .trim-row label { color:var(--text-2); font-size:9px; font-weight:700; }
+  .trim-row output { color:var(--green); font:10px var(--mono); text-align:right; }
+  .trim-row input[type=range] { width:100%; height:5px; }
+  .download-modal .modal-content { max-width:350px; }
+  .download-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+  .download-link, .share-wav { display:flex; align-items:center; justify-content:center; height:44px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:13px; font-weight:700; text-decoration:none; cursor:pointer; }
+  .share-wav { background:var(--surface-3); border:1px solid var(--border-strong); }
+  .download-note { font-size:11px; color:var(--text-2); line-height:1.45; }
+  .project-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0 10px; }
+  .project-action { height:44px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); font-size:12px; font-weight:700; }
+  .project-action.primary { background:var(--accent); border-color:transparent; color:#fff; }
+  .project-status { min-height:18px; color:var(--green); font:10px var(--mono); text-align:center; }
+  .sheet-modal { align-items:flex-end; padding:0; }
+  .sheet-modal .modal-content { width:min(100%,430px); max-width:430px; margin:0; border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); animation:sheetUp .22s ease-out; }
+  @keyframes sheetUp { from { transform:translateY(100%); opacity:.5; } to { transform:translateY(0); opacity:1; } }
+  .sheet-grip { width:38px; height:4px; border-radius:4px; background:#59616d; margin:0 auto 12px; }
+  .sheet-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; }
+  .sheet-title h2 { margin:0; font-size:16px; }
+  .sheet-close { width:30px; height:30px; border:1px solid var(--border); border-radius:50%; background:var(--surface-2); color:var(--text-2); font-size:16px; }
+  .fx-sheet-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:14px; }
+  .fx-sheet-tab { height:38px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); color:var(--text-2); font-size:10px; font-weight:700; }
+  .fx-sheet-tab.active { background:var(--accent); border-color:transparent; color:#fff; }
+  .sheet-param { display:grid; grid-template-columns:62px 1fr 48px; gap:9px; align-items:center; margin:11px 0; }
+  .sheet-param label { color:var(--text-2); font-size:10px; font-weight:700; }
+  .sheet-param output { color:var(--green); font:11px var(--mono); text-align:right; }
+  .sheet-param input { width:100%; }
+  .seq-sheet { position:fixed; z-index:80; left:50%; bottom:0; width:min(100vw,430px); max-height:82vh; overflow:auto; transform:translate(-50%,110%); transition:transform .22s ease-out; padding:15px 14px calc(15px + env(safe-area-inset-bottom)); border:1px solid var(--border); border-bottom:0; border-radius:22px 22px 0 0; background:linear-gradient(180deg,#292f38,#14181e); box-shadow:0 -12px 40px rgba(0,0,0,.5); }
+  .seq-sheet.open { transform:translate(-50%,0); }
+  .seq-backdrop { display:none; position:fixed; z-index:70; inset:0; background:rgba(0,0,0,.48); }
+  .seq-backdrop.open { display:block; }
+  .device { overflow:visible; }
+
+  /* === phone-first performance layout === */
+  @media (max-width: 600px), (max-height: 820px) {
+    html, body { background:#050608; }
+    .device {
+      width:100%; max-width:520px; height:100dvh; min-height:0;
+      padding: max(8px, env(safe-area-inset-top), var(--tg-safe-top, 12px)) 10px max(8px, env(safe-area-inset-bottom));
+      overflow:hidden; gap:0;
+      background:linear-gradient(180deg,#11151c 0%,#080a0e 100%);
+    }
+    .stickers-layer, .onboard-tip { display:none; }
+    .top-bar { padding:0 2px 7px; min-height:28px; }
+    .logo { font-size:12px; letter-spacing:.12em; }
+    .top-bar::after { top:17px; font-size:7px; }
+    .pro-badge { padding:5px 8px; }
+    .screen-wrap { margin-bottom:7px; }
+    .screen { height:78px; padding:9px 11px; border-radius:12px; }
+    .screen-top { font-size:8px; margin-bottom:3px; }
+    .screen-main { font-size:18px; }
+    .screen-sub { font-size:9px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .wave-canvas { left:11px; right:11px; bottom:7px; height:22px; }
+    .level-bar { top:25px; bottom:8px; right:8px; }
+    .controls-row { display:none; }
+    .fx-row { grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:6px; }
+    .fx-btn { height:36px; border-radius:9px; font-size:8px; }
+    .mode-row { grid-template-columns:repeat(6,1fr); gap:4px; margin-bottom:7px; }
+    .mode-btn { height:36px; border-radius:9px; font-size:8px; padding:0 2px; }
+    .pads { flex:1 1 auto; min-height:0; height:auto; grid-template-rows:repeat(4,minmax(0,1fr)); gap:7px; margin:0 0 8px; }
+    .pad { min-height:0; height:auto; border-radius:13px; }
+    .pad-number { bottom:8px; font-size:12px; }
+    .pad-led { width:7px; height:7px; top:8px; right:8px; }
+    .bottom-row { grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; margin-bottom:6px; }
+    .ctrl-btn { min-width:0; height:42px; border-radius:10px; padding:0 2px; font-size:8px; letter-spacing:0; white-space:nowrap; }
+    .sliders-row { flex:0 0 auto; gap:10px; padding:1px 3px 5px; margin:0; }
+    .slider-group { gap:5px; }
+    .slider-group label { width:23px; font-size:8px; }
+    .stats-bar { flex:0 0 auto; min-height:38px; padding:5px 6px; border-radius:11px; }
+    .util-btn { height:30px; min-width:32px; }
+    .channel-link { max-width:145px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; padding:7px 8px; }
+  }
+  @media (max-height:700px) {
+    .screen { height:64px; padding:7px 9px; }
+    .screen-main { font-size:16px; }
+    .screen-sub { display:none; }
+    .fx-btn, .mode-btn { height:31px; }
+    .pads { gap:4px; margin-bottom:5px; }
+    .pad-number { bottom:5px; font-size:10px; }
+    .bottom-row { gap:4px; margin-bottom:4px; }
+    .ctrl-btn { height:36px; font-size:7px; }
+    .stats-bar { min-height:34px; }
+  }
 
 </style>
 </head>
@@ -1198,6 +1285,11 @@
       <div class="level-bar"><div class="level-fill" id="levelFill"></div></div>
     </div>
   </div>
+  <div class="trim-panel" id="trimPanel">
+    <div class="trim-head"><span>CHOP · PAD <span id="trimPadNum">1</span></span><button id="trimReset">RESET</button></div>
+    <div class="trim-row"><label for="trimStart">START</label><input id="trimStart" type="range" min="0" max="0.98" step="0.001" value="0"><output id="trimStartValue">0%</output></div>
+    <div class="trim-row"><label for="trimEnd">END</label><input id="trimEnd" type="range" min="0.02" max="1" step="0.001" value="1"><output id="trimEndValue">100%</output></div>
+  </div>
 
   <div class="controls-row">
     <div class="knob-group"><div class="knob-label">CUTOFF</div><div class="knob" id="knobCutoff" data-param="cutoff"></div><div class="knob-value" id="valCutoff">8000</div></div>
@@ -1218,7 +1310,7 @@
     <button class="mode-btn" id="btnLoop" data-mode="loop">LOOP</button>
     <button class="mode-btn" id="btnReverse" data-mode="reverse">REVERSE</button>
     <button class="mode-btn" id="btnGate" data-mode="gate">GATE</button>
-    <button class="mode-btn pro-lock" id="btnChop" data-mode="chop">CHOP</button>
+    <button class="mode-btn" id="btnChop" data-mode="chop">CHOP</button>
     <button class="mode-btn pro-lock" id="btnPitch" data-mode="pitch">PITCH</button>
     <button class="mode-btn" id="btnKey" data-mode="key">KEY</button>
   </div>
@@ -1234,9 +1326,11 @@
     <button class="ctrl-btn" id="btnClear">CLEAR</button>
   </div>
 
-  <div class="seq-section" id="seqSection">
+  <div class="seq-section seq-sheet" id="seqSection">
+    <div class="sheet-grip"></div>
     <div class="seq-header">
       <span>SEQ · PAD <span id="seqPadNum">1</span></span>
+      <button class="sheet-close" id="closeSeq" aria-label="Закрыть">×</button>
     </div>
     <div class="seq-toolbar">
       <select id="patternSelect" aria-label="Pattern"><option value="0">PATTERN 1</option><option value="1">PATTERN 2</option><option value="2">PATTERN 3</option><option value="3">PATTERN 4</option></select>
@@ -1261,6 +1355,22 @@
       <button class="util-btn pro-util" id="btnProBottom">PRO</button>
     </div>
     <a class="channel-link" href="https://t.me/rolikcosmetic" target="_blank" rel="noopener">📢 rolikcosmetic</a>
+  </div>
+</div>
+
+<div class="seq-backdrop" id="seqBackdrop"></div>
+
+<div class="modal sheet-modal" id="fxModal">
+  <div class="modal-content">
+    <div class="sheet-grip"></div>
+    <div class="sheet-title"><h2>FX · SOUND</h2><button class="sheet-close" id="closeFx" aria-label="Закрыть">×</button></div>
+    <div class="fx-sheet-grid">
+      <button class="fx-sheet-tab active" data-sheet-fx="filter">FILTER</button><button class="fx-sheet-tab" data-sheet-fx="delay">DELAY</button><button class="fx-sheet-tab" data-sheet-fx="reverb">REVERB</button><button class="fx-sheet-tab" data-sheet-fx="isolator">ISOLATOR</button>
+    </div>
+    <div class="sheet-param"><label for="sheetCutoff">CUTOFF</label><input id="sheetCutoff" type="range" min="200" max="12000" step="1" value="8000"><output id="sheetCutoffValue">8000</output></div>
+    <div class="sheet-param"><label for="sheetReso">RESO</label><input id="sheetReso" type="range" min="0.1" max="18" step="0.1" value="1"><output id="sheetResoValue">1.0</output></div>
+    <div class="sheet-param"><label for="sheetTime">TIME</label><input id="sheetTime" type="range" min="0" max="1" step="0.01" value="0.25"><output id="sheetTimeValue">0.25</output></div>
+    <div class="sheet-param"><label for="sheetLofi">LO-FI</label><input id="sheetLofi" type="range" min="0" max="1" step="0.01" value="0"><output id="sheetLofiValue">0.00</output></div>
   </div>
 </div>
 
@@ -1292,13 +1402,13 @@
       <p><b style="color:#e85a2a">SEQ</b> — паттерны на 16 шагов. REC включает realtime-запись ударов с пэдов, а TRACK собирает до 8 паттернов в полноценный трек.</p>
       <p><b style="color:#e85a2a">CLEAR</b> — очистить выбранный пад.</p>
       <p><b style="color:#e85a2a">LOOP / REVERSE / GATE</b> — режимы семпла на паде.</p>
-      <p><b style="color:#e85a2a">CHOP (PRO)</b> — обрезка: TIME=START, LO-FI=END.</p>
+      <p><b style="color:#e85a2a">CHOP</b> — удобная обрезка выбранного семпла: большие START/END-ползунки или перетаскивание границ на waveform.</p>
       <p><b style="color:#e85a2a">PITCH (PRO)</b> — тон семпла (± полутона).</p>
       <p><b style="color:#e85a2a">KEY</b> — тональность (C–B). Долгое нажатие — назад.</p>
       <p><b style="color:#e85a2a">Экран</b> — волна семпла. Тап — обрезка (PRO).</p>
       <p><b style="color:#e85a2a">FILTER…VINYL</b> — эффекты. VINYL — в PRO.</p>
       <p><b style="color:#e85a2a">Крутилки</b> — cutoff, reso, delay time, lo-fi.</p>
-      <p><b style="color:#e85a2a">💾</b> — экспорт текущего микса в WAV (скачивание).</p>
+      <p><b style="color:#e85a2a">💾</b> — Project sheet: проект и сэмплы автоматически сохраняются в браузере и восстанавливаются после перезагрузки. Оттуда же доступен экспорт WAV.</p>
       <p><b style="color:#e85a2a">Экран</b> — тапни: вспышка / смена визуала.</p>
       <p style="margin-top:8px;">Канал: <a href="https://t.me/rolikcosmetic" target="_blank" style="color:#6ab0ff">t.me/rolikcosmetic</a></p>
     </div>
@@ -1320,7 +1430,7 @@
   </div>
 </div>
 
-<div class="modal" id="presetModal">
+<div class="modal sheet-modal" id="presetModal">
   <div class="modal-content" style="max-width:340px;text-align:left;">
     <h2>Встроенные пресеты</h2>
     <p>Готовые звуки генерируются прямо в браузере через Web Audio API. Файлы не нужны.</p>
@@ -1330,6 +1440,26 @@
       <button class="preset-card" data-preset="melody"><span class="preset-icon">🎹</span><span><strong>CHILL MELODY</strong><small>Аккорды и мелодический луп на пэдах 9–12</small></span></button>
     </div>
     <button class="close-modal" id="closePresets" style="display:block;width:100%;margin-top:8px;">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal sheet-modal download-modal" id="downloadModal">
+  <div class="modal-content">
+    <h2>Трек готов</h2>
+    <p class="download-note">WAV уже собран. На iPhone нажми «Скачать WAV», затем выбери «Сохранить в Файлы». Если браузер не начинает загрузку, используй «Поделиться».</p>
+    <div class="download-actions"><a class="download-link" id="downloadWavLink" href="#" download="sp404-track.wav">Скачать WAV</a><button class="share-wav" id="shareWavBtn">Поделиться</button></div>
+    <button class="close-modal" id="closeDownload" style="display:block;width:100%;margin-top:12px;">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal sheet-modal" id="projectModal">
+  <div class="modal-content">
+    <div class="sheet-grip"></div>
+    <div class="sheet-title"><h2>💾 PROJECT</h2><button class="sheet-close" id="closeProject" aria-label="Закрыть">×</button></div>
+    <p class="download-note">Проект и аудиосэмплы сохраняются в localStorage этого браузера. После перезагрузки пэды, CHOP, FX, паттерны и BPM восстановятся автоматически.</p>
+    <div class="project-actions"><button class="project-action primary" id="saveProjectBtn">Сохранить</button><button class="project-action" id="loadProjectBtn">Восстановить</button></div>
+    <button class="project-action" id="exportProjectWav" style="width:100%;">Экспорт WAV</button>
+    <div class="project-status" id="projectStatus"></div>
   </div>
 </div>
 
@@ -1363,6 +1493,7 @@
   let currentFx = 'filter', holdMode = false, isRecording = false, mediaRecorder, recordedChunks = [];
   let seqPlaying = false, seqInterval, currentStep = 0, bpm = 120, selectedPad = 0;
   let seqRecording = false, isSequencerTrigger = false, currentPattern = 0, chainPosition = 0;
+  let lastExportUrl = null, lastExportBlob = null;
   let theme = localStorage.getItem('sp404_theme') || 'dark';
   let chopEdit = false;
   const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1629,10 +1760,6 @@
       setScreen('PAD ' + (selectedPad + 1), 'Сначала LOAD');
       return;
     }
-    if (!isPro) {
-      document.getElementById('proModal').classList.add('show');
-      return;
-    }
     document.getElementById('btnChop').click();
   });
 
@@ -1792,6 +1919,7 @@
   function highlightSelectedPad() {
     document.querySelectorAll('.pad').forEach(p=>p.classList.remove('selected'));
     document.querySelector('.pad[data-index="'+selectedPad+'"]')?.classList.add('selected');
+    if (chopEdit) syncTrimUI();
   }
   function updateModeButtons() {
     const m=padModes[selectedPad];
@@ -1824,6 +1952,7 @@
       highlightSelectedPad();
       setScreen('LOADED '+(padIndex+1), (file.name||'audio').slice(0,14));
       showToast('PAD '+(padIndex+1)+' ← '+(file.name||'ok').slice(0,16)); haptic('success');
+      scheduleProjectSave();
       try { document.getElementById('onboardTip')?.classList.remove('show'); localStorage.setItem('sp404_tip','1'); } catch(e){}
     } catch(e){
       console.error(e);
@@ -1876,6 +2005,7 @@
     selectedPad=index; lastPadWave={buffer,start:0,end:1,index};
     highlightSelectedPad(); updateModeButtons();
     setScreen('KIT PAD '+(index+1),label);
+    scheduleProjectSave();
   }
   async function loadBuiltInPreset(kind) {
     if(!audioCtx) initAudio();
@@ -1927,6 +2057,7 @@
           highlightSelectedPad();
           setScreen('REC → '+(idx+1), buf.duration.toFixed(2)+'s');
           showToast('Запись в PAD '+(idx+1));
+          scheduleProjectSave();
           stream.getTracks().forEach(t=>t.stop());
         };
         mediaRecorder.start(); isRecording=true;
@@ -1947,7 +2078,7 @@
     for(let i=0;i<8;i++){
       const b=document.createElement('button'); b.className='chain-slot'+(i<patternChain.length?' active':'');
       b.textContent=i<patternChain.length?'P'+(patternChain[i]+1):'—'; b.title='Нажми, чтобы выбрать паттерн для слота '+(i+1);
-      b.onclick=()=>{ if(i>=patternChain.length) patternChain.push(0); else patternChain[i]=(patternChain[i]+1)%4; renderChain(); };
+      b.onclick=()=>{ if(i>=patternChain.length) patternChain.push(0); else patternChain[i]=(patternChain[i]+1)%4; renderChain(); scheduleProjectSave(); };
       c.appendChild(b);
     }
   }
@@ -1955,7 +2086,7 @@
     currentPattern=Math.max(0,Math.min(3,Number(index)||0));
     sequence=patterns[currentPattern];
     document.getElementById('patternSelect').value=String(currentPattern);
-    updateSeqPadLabel(); renderChain();
+    updateSeqPadLabel(); renderChain(); scheduleProjectSave();
     setScreen('PATTERN '+(currentPattern+1),'PAD '+(selectedPad+1)+' · 16 steps');
   }
   function playSequence() {
@@ -2014,6 +2145,71 @@
 
   function setScreen(main,sub=''){ document.getElementById('screenMain').textContent=main; document.getElementById('screenSub').textContent=sub; }
   function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+  function syncFxSheet() {
+    const vals={sheetCutoff:params.cutoff,sheetReso:params.reso,sheetTime:params.delay,sheetLofi:params.lofi};
+    Object.entries(vals).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
+    document.getElementById('sheetCutoffValue').textContent=Math.round(params.cutoff);
+    document.getElementById('sheetResoValue').textContent=Number(params.reso).toFixed(1);
+    document.getElementById('sheetTimeValue').textContent=Number(params.delay).toFixed(2);
+    document.getElementById('sheetLofiValue').textContent=Number(params.lofi).toFixed(2);
+  }
+  let projectSaveTimer=null;
+  function audioBufferToWav(buffer) {
+    const channels=Math.min(2,buffer.numberOfChannels), rate=buffer.sampleRate, len=buffer.length;
+    const ab=new ArrayBuffer(44+len*channels*2), v=new DataView(ab), write=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+    write(0,'RIFF'); v.setUint32(4,36+len*channels*2,true); write(8,'WAVE'); write(12,'fmt ');
+    v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,channels,true); v.setUint32(24,rate,true); v.setUint32(28,rate*channels*2,true); v.setUint16(32,channels*2,true); v.setUint16(34,16,true); write(36,'data'); v.setUint32(40,len*channels*2,true);
+    const data=Array.from({length:channels},(_,c)=>buffer.getChannelData(c)); let off=44;
+    for(let i=0;i<len;i++) for(let c=0;c<channels;c++){const n=Math.max(-1,Math.min(1,data[c][i]||0));v.setInt16(off,n<0?n*0x8000:n*0x7fff,true);off+=2;}
+    return ab;
+  }
+  function arrayBufferToBase64(ab){const bytes=new Uint8Array(ab);let out='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(out);}
+  function base64ToArrayBuffer(str){const bin=atob(str),ab=new ArrayBuffer(bin.length),bytes=new Uint8Array(ab);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return ab;}
+  function projectSnapshot(){
+    return {version:2,savedAt:Date.now(),bpm,sequence,patterns,patternChain,currentPattern,params,theme,isPro,padModes,globalKey,currentFx,selectedPad,
+      samples:samples.map((buf,i)=>buf?{index:i,wav:arrayBufferToBase64(audioBufferToWav(buf))}:null)};
+  }
+  async function saveProjectToStorage(show=true){
+    try {
+      const json=JSON.stringify(projectSnapshot());
+      localStorage.setItem('sp404_project',json);
+      const status=document.getElementById('projectStatus'); if(status) status.textContent='Сохранено · '+new Date().toLocaleTimeString();
+      if(show) showToast('Проект и семплы сохранены');
+      return true;
+    } catch(e) {
+      console.error(e); if(show) showToast('Не хватает места в localStorage');
+      const status=document.getElementById('projectStatus'); if(status) status.textContent='Ошибка: память браузера заполнена';
+      return false;
+    }
+  }
+  function scheduleProjectSave(){ clearTimeout(projectSaveTimer); projectSaveTimer=setTimeout(()=>saveProjectToStorage(false),700); }
+  async function restoreProjectFromStorage(show=true){
+    try {
+      const raw=localStorage.getItem('sp404_project'); if(!raw) { if(show) showToast('Сохранённого проекта нет'); return false; }
+      const p=JSON.parse(raw); if(!p||!p.samples) return false;
+      if(!audioCtx) initAudio();
+      bpm=p.bpm||120; document.getElementById('bpmSlider').value=bpm; document.getElementById('screenBpm').textContent=bpm+' BPM';
+      if(p.params) Object.assign(params,p.params); if(p.padModes) p.padModes.forEach((m,i)=>{if(m)padModes[i]=Object.assign(padModes[i],m);});
+      if(Array.isArray(p.patterns)) { p.patterns.forEach((pat,i)=>{if(patterns[i]&&Array.isArray(pat)) patterns[i]=pat;}); sequence=patterns[p.currentPattern||0]; }
+      if(Array.isArray(p.patternChain)) patternChain=p.patternChain; currentPattern=p.currentPattern||0; globalKey=p.globalKey||0; currentFx=p.currentFx||'filter'; selectedPad=p.selectedPad||0;
+      for(let i=0;i<16;i++) if(p.samples[i]?.wav) { try { samples[i]=await audioCtx.decodeAudioData(base64ToArrayBuffer(p.samples[i].wav)); document.querySelector('.pad[data-index="'+i+'"]')?.classList.add('has-sample'); } catch(e){ console.warn('sample restore failed',i,e); } }
+      sequence=patterns[currentPattern]; document.getElementById('patternSelect').value=String(currentPattern); highlightSelectedPad(); updateModeButtons(); updateSeqPadLabel(); renderChain(); syncFxSheet(); updateParams();
+      if(show) showToast('Проект восстановлен'); return true;
+    } catch(e){ console.error(e); if(show) showToast('Не удалось восстановить проект'); return false; }
+  }
+  function syncTrimUI() {
+    const m=padModes[selectedPad], start=Math.max(0,Math.min(.98,m.start||0)), end=Math.max(.02,Math.min(1,m.end==null?1:m.end));
+    const s=document.getElementById('trimStart'), e=document.getElementById('trimEnd');
+    if(s) { s.value=start; s.max=Math.max(.02,end-.02); document.getElementById('trimStartValue').textContent=Math.round(start*100)+'%'; }
+    if(e) { e.value=end; e.min=Math.min(.98,start+.02); document.getElementById('trimEndValue').textContent=Math.round(end*100)+'%'; }
+    const n=document.getElementById('trimPadNum'); if(n) n.textContent=selectedPad+1;
+  }
+  function setTrim(start,end) {
+    const m=padModes[selectedPad]; m.start=Math.max(0,Math.min(.98,start)); m.end=Math.min(1,Math.max(m.start+.02,end));
+    if(lastPadWave && lastPadWave.index===selectedPad){ lastPadWave.start=m.start; lastPadWave.end=m.end; }
+    syncTrimUI(); scheduleProjectSave(); setScreen('TRIM PAD '+(selectedPad+1),'S '+Math.round(m.start*100)+'%  E '+Math.round(m.end*100)+'%');
+  }
+  function resetTrim() { setTrim(0,1); showToast('CHOP сброшен'); }
 
   function setupKnobs() {
     document.querySelectorAll('.knob').forEach(knob=>{
@@ -2126,7 +2322,7 @@
     const c=document.getElementById('seqSteps'); c.innerHTML='';
     for(let s=0;s<16;s++){
       const el=document.createElement('div'); el.className='step'; el.dataset.step=s;
-      el.onclick=()=>{ sequence[s][selectedPad]=!sequence[s][selectedPad]; el.classList.toggle('on',sequence[s][selectedPad]); };
+      el.onclick=()=>{ sequence[s][selectedPad]=!sequence[s][selectedPad]; el.classList.toggle('on',sequence[s][selectedPad]); scheduleProjectSave(); };
       c.appendChild(el);
     }
   }
@@ -2136,21 +2332,24 @@
     padModes[selectedPad].loop=!padModes[selectedPad].loop;
     updateModeButtons();
     setScreen('PAD '+(selectedPad+1), padModes[selectedPad].loop?'LOOP ON':'LOOP OFF');
+    scheduleProjectSave();
   };
   document.getElementById('btnReverse').onclick=()=>{
     padModes[selectedPad].reverse=!padModes[selectedPad].reverse;
     updateModeButtons();
     setScreen('PAD '+(selectedPad+1), padModes[selectedPad].reverse?'REVERSE':'FORWARD');
+    scheduleProjectSave();
   };
   document.getElementById('btnGate').onclick=()=>{
     padModes[selectedPad].gate=!padModes[selectedPad].gate;
     updateModeButtons();
     setScreen('PAD '+(selectedPad+1), padModes[selectedPad].gate?'GATE ON':'GATE OFF');
+    scheduleProjectSave();
   };
   document.getElementById('btnChop').onclick=()=>{
-    if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
     chopEdit = !chopEdit;
     document.getElementById('btnChop').classList.toggle('active', chopEdit);
+    document.getElementById('trimPanel').classList.toggle('open', chopEdit);
     const startLabel = document.querySelector('#knobDelay')?.parentElement?.querySelector('.knob-label');
     const endLabel = document.querySelector('#knobLofi')?.parentElement?.querySelector('.knob-label');
     if (chopEdit) {
@@ -2159,9 +2358,11 @@
       if (endLabel) endLabel.textContent = 'END';
       document.getElementById('valDelay').textContent = (m.start*100).toFixed(0)+'%';
       document.getElementById('valLofi').textContent = (m.end*100).toFixed(0)+'%';
+      syncTrimUI();
       setScreen('TRIM PAD '+(selectedPad+1), 'S '+(m.start*100).toFixed(0)+'%  E '+(m.end*100).toFixed(0)+'%');
-      showToast('Обрезка: TIME=START · LO-FI=END');
+      showToast('CHOP: двигай START и END');
     } else {
+      document.getElementById('trimPanel').classList.remove('open');
       if (startLabel) startLabel.textContent = 'TIME';
       if (endLabel) endLabel.textContent = 'LO-FI';
       document.getElementById('valDelay').textContent = params.delay.toFixed(2);
@@ -2169,6 +2370,9 @@
       setScreen('PAD '+(selectedPad+1), 'Trim off');
     }
   };
+  document.getElementById('trimStart').oninput=e=>setTrim(parseFloat(e.target.value),parseFloat(document.getElementById('trimEnd').value));
+  document.getElementById('trimEnd').oninput=e=>setTrim(parseFloat(document.getElementById('trimStart').value),parseFloat(e.target.value));
+  document.getElementById('trimReset').onclick=resetTrim;
   document.getElementById('btnPitch').onclick=()=>{
     if(!isPro){ document.getElementById('proModal').classList.add('show'); return; }
     const m=padModes[selectedPad];
@@ -2257,7 +2461,14 @@
       this.classList.remove('active');
     }
   };
-  document.getElementById('btnSeq').onclick=function(){ const s=document.getElementById('seqSection'); s.classList.toggle('open'); this.classList.toggle('active',s.classList.contains('open')); };
+  function setSeqSheet(open) {
+    const s=document.getElementById('seqSection'); s.classList.toggle('open',open);
+    document.getElementById('seqBackdrop').classList.toggle('open',open);
+    document.getElementById('btnSeq').classList.toggle('active',open);
+  }
+  document.getElementById('btnSeq').onclick=()=>setSeqSheet(true);
+  document.getElementById('closeSeq').onclick=()=>setSeqSheet(false);
+  document.getElementById('seqBackdrop').onclick=()=>setSeqSheet(false);
   document.getElementById('btnPlay').onclick=playSequence;
   document.getElementById('patternSelect').onchange=e=>{ if(seqPlaying){ showToast('Останови PLAY для смены паттерна'); e.target.value=String(currentPattern); return; } selectPattern(e.target.value); };
   document.getElementById('btnRecSeq').onclick=()=>{
@@ -2268,27 +2479,52 @@
     setScreen(seqRecording?'● REC PATTERN':'PATTERN '+(currentPattern+1),seqRecording?'Tap pads in time':'Ready');
     showToast(seqRecording?'Realtime запись включена':'Realtime запись остановлена');
   };
-  document.getElementById('btnSeqClear').onclick=()=>{ for(let s=0;s<16;s++) sequence[s][selectedPad]=false; updateSeqPadLabel(); showToast('CLR PAD '+(selectedPad+1)+' · PATTERN '+(currentPattern+1)); };
+  document.getElementById('btnSeqClear').onclick=()=>{ for(let s=0;s<16;s++) sequence[s][selectedPad]=false; updateSeqPadLabel(); scheduleProjectSave(); showToast('CLR PAD '+(selectedPad+1)+' · PATTERN '+(currentPattern+1)); };
   document.getElementById('btnClear').onclick=()=>{
     samples[selectedPad]=null; latchedPads.delete(selectedPad); padModes[selectedPad]={loop:false,reverse:false,gate:true,start:0,end:1,pitch:0};
     document.querySelector('.pad[data-index="'+selectedPad+'"]')?.classList.remove('has-sample','latched','loop-on');
-    stopPad(selectedPad); setScreen('PAD '+(selectedPad+1),'Cleared'); haptic('medium'); showToast('Пад очищен');
+    stopPad(selectedPad); scheduleProjectSave(); setScreen('PAD '+(selectedPad+1),'Cleared'); haptic('medium'); showToast('Пад очищен');
   };
   document.getElementById('volume').oninput=e=>{ params.volume=parseFloat(e.target.value); if(masterGain) masterGain.gain.value=params.volume; };
-  document.getElementById('bpmSlider').oninput=e=>{ bpm=parseInt(e.target.value,10); document.getElementById('screenBpm').textContent=bpm+' BPM'; if(seqPlaying){playSequence();playSequence();} };
+  document.getElementById('bpmSlider').oninput=e=>{ bpm=parseInt(e.target.value,10); document.getElementById('screenBpm').textContent=bpm+' BPM'; scheduleProjectSave(); if(seqPlaying){playSequence();playSequence();} };
 
   document.querySelectorAll('.fx-btn').forEach(btn=>{
     btn.onclick=()=>{
       const fx=btn.dataset.fx;
       if(btn.classList.contains('locked')&&!isPro){ document.getElementById('proModal').classList.add('show'); return; }
       document.querySelectorAll('.fx-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
-      currentFx=fx; updateParams(); setScreen(fx.toUpperCase(),'Effect');
+      currentFx=fx; updateParams(); syncFxSheet();
+      document.querySelectorAll('.fx-sheet-tab').forEach(b=>b.classList.toggle('active',b.dataset.sheetFx===fx));
+      document.getElementById('fxModal').classList.add('show'); setScreen(fx.toUpperCase(),'FX panel');
     };
   });
+  document.getElementById('closeFx').onclick=()=>document.getElementById('fxModal').classList.remove('show');
+  document.querySelectorAll('.fx-sheet-tab').forEach(tab=>tab.onclick=()=>{
+    const fx=tab.dataset.sheetFx;
+    document.querySelectorAll('.fx-sheet-tab').forEach(b=>b.classList.toggle('active',b===tab));
+    document.querySelectorAll('.fx-btn').forEach(b=>b.classList.toggle('active',b.dataset.fx===fx));
+    currentFx=fx; updateParams(); setScreen(fx.toUpperCase(),'FX panel');
+  });
+  const bindSheetParam=(id,key,format)=>document.getElementById(id).oninput=e=>{
+    params[key]=parseFloat(e.target.value); format(); updateParams(); scheduleProjectSave();
+  };
+  bindSheetParam('sheetCutoff','cutoff',()=>document.getElementById('sheetCutoffValue').textContent=Math.round(params.cutoff));
+  bindSheetParam('sheetReso','reso',()=>document.getElementById('sheetResoValue').textContent=params.reso.toFixed(1));
+  bindSheetParam('sheetTime','delay',()=>document.getElementById('sheetTimeValue').textContent=params.delay.toFixed(2));
+  bindSheetParam('sheetLofi','lofi',()=>document.getElementById('sheetLofiValue').textContent=params.lofi.toFixed(2));
 
   document.getElementById('btnHelp').onclick=()=>document.getElementById('helpModal').classList.add('show');
   document.getElementById('closeHelp').onclick=()=>document.getElementById('helpModal').classList.remove('show');
-  document.getElementById('btnSave').onclick=async ()=>{
+  document.getElementById('closeDownload').onclick=()=>document.getElementById('downloadModal').classList.remove('show');
+  document.getElementById('shareWavBtn').onclick=async()=>{
+    if(!lastExportBlob){ showToast('Сначала собери WAV'); return; }
+    const file=new File([lastExportBlob],'sp404-track.wav',{type:'audio/wav'});
+    try {
+      if(navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({files:[file],title:'SP-404 track'});
+      else showToast('Нажми «Скачать WAV» и сохрани файл');
+    } catch(e) { if(e.name!=='AbortError') showToast('Открой меню Поделиться вручную'); }
+  };
+  async function exportTrack(){
     try {
       localStorage.setItem('sp404_project',JSON.stringify({bpm,sequence,patterns,patternChain,params,theme,isPro,padModes}));
       if(!audioCtx) initAudio();
@@ -2337,24 +2573,39 @@
         v.setInt16(off,r<0?r*0x8000:r*0x7FFF,true); off+=2;
       }
       const blob=new Blob([ab],{type:'audio/wav'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download='sp404-export-'+Date.now()+'.wav';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),2000);
+      if(lastExportUrl) URL.revokeObjectURL(lastExportUrl);
+      lastExportBlob=blob;
+      lastExportUrl=URL.createObjectURL(blob);
+      const filename='sp404-track-'+new Date().toISOString().slice(0,10)+'.wav';
+      const downloadLink=document.getElementById('downloadWavLink');
+      downloadLink.href=lastExportUrl; downloadLink.download=filename;
+      document.getElementById('downloadModal').classList.add('show');
+      // Desktop browsers usually accept this immediate download; the visible link remains for iOS.
+      if (!/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        const a=document.createElement('a'); a.href=lastExportUrl; a.download=filename; a.click();
+      }
       // Telegram: уведомить бота (чтобы бот мог ответить файлом — нужен бэкенд)
       try {
         if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
           Telegram.WebApp.sendData(JSON.stringify({action:'export', pads:list.length, t:Date.now()}));
         }
       } catch(e){}
-      showToast('WAV скачан. Бот: нужен сервер для mp3');
+      showToast('WAV готов — нажми «Скачать WAV»');
       setScreen('EXPORT', 'WAV ready');
     } catch(e) {
       console.error(e);
       showToast('Ошибка экспорта');
     }
-  };
+  }
+  function syncProjectStatus(){
+    const raw=localStorage.getItem('sp404_project'), el=document.getElementById('projectStatus');
+    if(el) el.textContent=raw?'Есть сохранение · '+new Date(JSON.parse(raw).savedAt||Date.now()).toLocaleTimeString():'Проект ещё не сохранён';
+  }
+  document.getElementById('btnSave').onclick=()=>{ syncProjectStatus(); document.getElementById('projectModal').classList.add('show'); };
+  document.getElementById('closeProject').onclick=()=>document.getElementById('projectModal').classList.remove('show');
+  document.getElementById('saveProjectBtn').onclick=async()=>{ await saveProjectToStorage(true); };
+  document.getElementById('loadProjectBtn').onclick=async()=>{ await restoreProjectFromStorage(true); };
+  document.getElementById('exportProjectWav').onclick=async()=>{ document.getElementById('projectModal').classList.remove('show'); await exportTrack(); };
 
   // stickers
   function renderStickerGrid(){
@@ -2551,6 +2802,7 @@
   document.getElementById('knobReso').style.transform='rotate(-100deg)';
   document.getElementById('knobDelay').style.transform='rotate(-40deg)';
   document.getElementById('knobLofi').style.transform='rotate(-135deg)';
+  setTimeout(()=>restoreProjectFromStorage(false),80);
 })();
 </script>
 </body>
